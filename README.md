@@ -6,6 +6,8 @@ Blink的名字取自dota中的"闪烁Blink"技能，敌法师、痛苦女王等�
 
 Blink是一套基于Uri的Activity路由框架，主要用于App内部的跨组件路由。
 
+![LOGO](doc/logo.jpeg)
+
 ## 主要功能
 
 - Activity路由跳转并携带参数，返回路由结果
