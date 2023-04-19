@@ -3,6 +3,7 @@
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](./LICENSE)
 
 Blink的名字取自dota中的"闪烁Blink"技能，敌法师、痛苦女王等英雄通过闪烁技能可以闪现到指定位置。
+
 Blink是一套基于Uri的Activity路由框架，主要用于App内部的跨组件路由。
 
 ## 主要功能
@@ -17,8 +18,8 @@ Blink是一套基于Uri的Activity路由框架，主要用于App内部的跨组�
 
 - ARouter
     - 功能包含了Activity的路由，以及全局拦截器，拦截器不支持动态增删
-    - 也包含了Fragment和Interface的依赖注入
-    - 使用注解，通过apt的方式编译时生成代码来创建路由表，并在全局初始化时加载路由表
+    - 也包含了Fragment和接口的依赖注入（对接口的依赖注入较简单粗暴，仅支持单例，无法自定义实现类的构造方法）
+    - 使用注解，通过字节码插桩和apt的方式编译时生成代码来创建路由表，并在全局初始化时加载路由表，造成一定的编译时开销
 
 - Blink
     - 功能仅包含Activity路由和全局拦截器，拦截器支持动态增删，但包含了页面结果回调。
@@ -68,36 +69,89 @@ category需要设置为android.intent.category.DEFAULT
 
 #### 函数返回
 
-相关方法的返回为Result<Unit>，可以从中获取路由结果。路由失败的原因主要有：
+kotlin中推荐使用扩展函数来调用，对于扩展函数的相关方法的返回为Result<Unit>，可以从中获取路由结果。路由失败的原因主要有：
 
 - ActivityNotFoundException 无法找到uri对应的Activity
 - 自定义异常 被路由拦截，推荐在拦截器抛InterruptedException或其子类来进行路由拦截
 
+kotlin中使用
 ```kotlin
 context.blink(Uri.parse("blink://navigator/example?name=Blink"))
 ```
 
+对于java中使用，提供了Blink为入口的静态方法。但需要注意的是，因为java不支持Result，所以对于Blink的静态方法，异常会直接抛出，如有需要，请务必在java业务端做try-catch
+
+java中使用
 ```java
 Blink.navigation(context, Uri.parse("blink://navigation/example?name=Hello"));
 ```
 
-### 3、Activity获取传入参数
+### 3、参数注入
+
+kotlin中实现参数
 
 ```kotlin
 import android.app.Activity
 
 class ExampleActivity : Activity() {
-    // Name参数传入
+    // 业务自行处理Name参数传入
     private val name: String? by lazy { intent.data?.getQueryParameter("name") }
+    // 由Blink提供懒加载函数进行参数注入，默认值可选。仅用于Activity
+    private val age: Int by intParams("age", 18)
+}
+```
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        // ....
+java中实现参数注入推荐使用BlinkParams注解配合Blink.inject()方法。
+
+特别注意：注意这个方法对于Activity和Fragment具有不同的实现
+
+- 对于Activity的注入，主要从intent.data，即uri中去获取传入的参数，支持的类型较少
+- 对于Fragment的注入，主要从arguments，即Bundle中去获取传入的参数，支持的类型较多（但也不是支持Bundle的全部类型，详见源码）
+
+```java
+import android.app.Activity;
+import com.seewo.blink.BlinkParams;
+import com.seewo.blink.Blink;
+
+public class ExampleActivity extends Activity {
+    @BlinkParams(name = "name")
+    private String name;
+
+    @BlinkParams(name = "age")
+    private int age = 18;
+    
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // 执行参数注入
+        Blink.inject(this);
+    }
+}
+```
+
+```java
+import androidx.fragment.app.Fragment;
+import com.seewo.blink.BlinkParams;
+import com.seewo.blink.Blink;
+
+public class ExampleFragment extends Fragment {
+    @BlinkParams(name = "name")
+    private String name;
+
+    @BlinkParams(name = "age")
+    private int age = 18;
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Blink.inject(this);
+        return new YourView(inflater, container, savedInstanceState);
     }
 }
 ```
 
 ### 4、增删拦截器
+
+kotlin中使用
 
 ```kotlin
 class LoggerInterceptor : Interceptor {
@@ -113,6 +167,8 @@ loggerInterceptor.attach()
 // 移除拦截器
 loggerInterceptor.detach()
 ```
+
+java中使用
 
 ```java
 LoggerInterceptor loggerInterceptor = new LoggerInterceptor();
@@ -166,6 +222,14 @@ class NextActivity : Activity() {
     }
 }
 ```
+## 特别关注
+
+处于简化使用考虑，整个路由的过程，包括拦截器是同步调用的，那么当你使用拦截器，需要关注以下一些点：
+
+- 对于专用拦截器，设置合理的过滤条件，进对于需要拦截的跳转生效
+- 拦截器中避免做耗时操作
+- 拦截器中需要做异步拦截后跳转（如弹窗等待用户点击后再跳转），可以先拦截此次跳转并弹窗，在弹窗点击后再执行一次新的路由。
+  - 对于这种情况，要小心新的路由可能仍然被当前拦截器拦截，造成死循环，所以如有必要，对Intent增加必要参数，避免被二次拦截。
 
 ## License
 

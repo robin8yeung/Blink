@@ -17,6 +17,6 @@ internal class Interceptors {
     }
 
     fun process(context: Context, intent: Intent) {
-        interceptors.forEach { it.process(context, intent) }
+        interceptors.filter { it.filter(intent) }.forEach { it.process(context, intent) }
     }
 }
