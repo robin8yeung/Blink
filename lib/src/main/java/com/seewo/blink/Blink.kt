@@ -266,7 +266,8 @@ object Blink {
                 val key = it.getAnnotation(BlinkParams::class.java)?.name ?: return@forEach
                 if (key.isBlank()) return@forEach
                 it.isAccessible = true
-                when {
+                // 注意：此处必须把变量的类型定义出来，否则用apply时遇到了kotlin把输出强转为serializable的问题
+                val value: Any? = when {
                     it.type == String::class.java -> bundle.getString(key)
                     it.type == Int::class.java -> bundle.getInt(key)
                     it.type == Long::class.java -> bundle.getLong(key)
@@ -278,10 +279,10 @@ object Blink {
                     it.type == FloatArray::class.java -> bundle.getFloatArray(key)
                     it.type == DoubleArray::class.java -> bundle.getDoubleArray(key)
                     it.type == BooleanArray::class.java -> bundle.getBooleanArray(key)
-                    Parcelable::class.java.isAssignableFrom(it.type) -> bundle.getParcelable(key)
-                    java.io.Serializable::class.java.isAssignableFrom(it.type) -> bundle.getSerializable(
-                        key
-                    )
+                    Parcelable::class.java.isAssignableFrom(it.type) ->
+                        bundle.getParcelable(key)
+                    java.io.Serializable::class.java.isAssignableFrom(it.type) ->
+                        bundle.getSerializable(key)
                     List::class.java.isAssignableFrom(it.type) -> {
                         val typeOfList =
                             ((it.genericType as ParameterizedType).actualTypeArguments.first() as ParameterizedType).rawType as Class<*>
@@ -295,7 +296,8 @@ object Blink {
                         }
                     }
                     else -> null
-                }?.runCatching {
+                }
+                value?.runCatching {
                     it.set(host, this)
                 }
             }
