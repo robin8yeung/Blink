@@ -26,7 +26,7 @@ Blink是一套基于Uri的Activity路由框架，主要用于App内部的跨组�
 - Blink
     - 功能仅包含Activity路由和全局拦截器，拦截器支持动态增删，但包含了页面结果回调。
     - 对于依赖注入的场景建议引入专门的依赖注入框架，如koin等
-    - 路由生命在AndroidManifest，不使用apt，避免编译时开销，但样板代码较多
+    - 路由声明在AndroidManifest，不使用apt，避免编译时开销，但样板代码较多
 
 ## 使用示例
 
