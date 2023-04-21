@@ -7,6 +7,7 @@ import android.net.Uri
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultCallback
 import androidx.core.app.ActivityOptionsCompat
+import androidx.core.net.toUri
 import com.seewo.blink.interceptor.Interceptor
 import com.seewo.blink.interceptor.InterruptedException
 
@@ -26,9 +27,14 @@ fun Interceptor.detach() {
 }
 
 /**
- * 通过uri创建UriNavigator使用的Intent
+ * 通过uri创建Blink使用的Intent
  */
 fun Uri.createBlinkIntent() = Blink.createIntent(this)
+
+/**
+ * 通过uri string创建Blink使用的Intent
+ */
+fun String.createBlinkIntent() = toUri().createBlinkIntent()
 
 /**
  * @param uri 字符串类型的Uri
@@ -114,6 +120,9 @@ fun Activity.doubleParams(name: String, default: Double = 0.0): Lazy<Double> = l
 fun Uri.Builder.appendQueryParameter(key: String, value: Any) = appendQueryParameter(key, "$value")
 
 fun Uri.build(block: Uri.Builder.() -> Unit) = buildUpon().apply(block).build()
+fun String.buildUri(block: Uri.Builder.() -> Unit) = Uri.parse(this).buildUpon().apply(block).build()
+
+fun Interceptor.putInGreenChannel(intent: Intent) = Blink.greenChannel(this, intent)
 
 inline fun <reified T> Activity.enumParams(name: String): Lazy<T?> = lazy {
     if (T::class.java.isEnum) {

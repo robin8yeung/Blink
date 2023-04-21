@@ -9,8 +9,10 @@ import android.os.Parcelable
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultCallback
 import androidx.core.app.ActivityOptionsCompat
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import com.seewo.blink.callback.UriBuilder
 import com.seewo.blink.interceptor.Interceptor
 import com.seewo.blink.interceptor.Interceptors
 import com.seewo.blink.stub.ResultHolder
@@ -26,6 +28,7 @@ import java.lang.reflect.ParameterizedType
  * - 拦截器
  */
 object Blink {
+    internal const val GREEN_CHANNEL = "Blink#GREEN#CHANNEL"
     private val interceptors = Interceptors()
 
     /**
@@ -56,6 +59,14 @@ object Blink {
     @JvmStatic
     fun createIntent(uri: Uri) = Intent(action).apply {
         data = uri
+    }
+
+    /**
+     * 通过uri创建UriNavigator使用的Intent
+     */
+    @JvmStatic
+    fun createIntent(uri: String) = Intent(action).apply {
+        data = uri.toUri()
     }
 
     /**
@@ -214,6 +225,14 @@ object Blink {
     @JvmStatic
     fun getDoubleParams(uri: Uri, name: String, default: Double): Double {
         return uri.getQueryParameter(name)?.toDoubleOrNull() ?: default
+    }
+
+    @JvmStatic
+    fun greenChannel(interceptor: Interceptor, intent: Intent) = intent.apply { putExtra(GREEN_CHANNEL, interceptor::class.java) }
+
+    @JvmStatic
+    fun buildUri(uri: String, builder: UriBuilder): Uri = Uri.parse(uri).run {
+        buildUpon().also { builder.build(it) }.build()
     }
 
     @Suppress("IMPLICIT_CAST_TO_ANY")
