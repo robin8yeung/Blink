@@ -1,10 +1,12 @@
 package com.seewo.blink
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import android.os.Parcelable
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultCallback
@@ -16,6 +18,7 @@ import com.seewo.blink.callback.UriBuilder
 import com.seewo.blink.interceptor.Interceptor
 import com.seewo.blink.interceptor.Interceptors
 import com.seewo.blink.stub.ResultHolder
+import java.io.Serializable
 import java.lang.reflect.ParameterizedType
 
 /**
@@ -27,9 +30,12 @@ import java.lang.reflect.ParameterizedType
  * - 页面结果回调
  * - 拦截器
  */
+@SuppressLint("StaticFieldLeak")
 object Blink {
     internal const val GREEN_CHANNEL = "Blink#GREEN#CHANNEL"
     private val interceptors = Interceptors()
+
+    internal lateinit var context: Context
 
     /**
      * Intent的action，默认如下，业务可自定义
@@ -59,6 +65,7 @@ object Blink {
     @JvmStatic
     fun createIntent(uri: Uri) = Intent(action).apply {
         data = uri
+        setPackage(context.packageName)
     }
 
     /**
@@ -67,6 +74,7 @@ object Blink {
     @JvmStatic
     fun createIntent(uri: String) = Intent(action).apply {
         data = uri.toUri()
+        setPackage(context.packageName)
     }
 
     /**
@@ -231,7 +239,10 @@ object Blink {
     fun greenChannel(interceptor: Interceptor, intent: Intent) = intent.apply { putExtra(GREEN_CHANNEL, interceptor::class.java) }
 
     @JvmStatic
-    fun buildUri(uri: String, builder: UriBuilder): Uri = Uri.parse(uri).run {
+    fun buildUri(uri: String, builder: UriBuilder): Uri = buildUri(Uri.parse(uri), builder)
+
+    @JvmStatic
+    fun buildUri(uri: Uri, builder: UriBuilder): Uri = uri.run {
         buildUpon().also { builder.build(it) }.build()
     }
 
@@ -239,7 +250,16 @@ object Blink {
     @JvmStatic
     fun inject(host: Activity) {
         val uri = host.intent.data ?: return
-        host.javaClass.declaredFields
+        val javaClass = host.javaClass
+        injectActivity(javaClass, uri, host)
+    }
+
+    private fun injectActivity(
+        clazz: Class<in Activity>,
+        uri: Uri,
+        host: Activity
+    ) {
+        clazz.declaredFields
             .filter { it.isAnnotationPresent(BlinkParams::class.java) }
             .forEach {
                 val key = it.getAnnotation(BlinkParams::class.java)?.name ?: return@forEach
@@ -274,12 +294,23 @@ object Blink {
                     it.set(host, this)
                 }
             }
+        val superClass = clazz.superclass ?: return
+        injectActivity(superClass, uri, host)
     }
 
     @JvmStatic
     fun inject(host: Fragment) {
         val bundle = host.arguments ?: return
-        host.javaClass.declaredFields
+        val javaClass = host.javaClass
+        injectFragment(javaClass, bundle, host)
+    }
+
+    private fun injectFragment(
+        clazz: Class<in Fragment>,
+        bundle: Bundle,
+        host: Fragment
+    ) {
+        clazz.declaredFields
             .filter { it.isAnnotationPresent(BlinkParams::class.java) }
             .forEach {
                 val key = it.getAnnotation(BlinkParams::class.java)?.name ?: return@forEach
@@ -300,11 +331,11 @@ object Blink {
                     it.type == BooleanArray::class.java -> bundle.getBooleanArray(key)
                     Parcelable::class.java.isAssignableFrom(it.type) ->
                         bundle.getParcelable(key)
-                    java.io.Serializable::class.java.isAssignableFrom(it.type) ->
+                    Serializable::class.java.isAssignableFrom(it.type) ->
                         bundle.getSerializable(key)
                     List::class.java.isAssignableFrom(it.type) -> {
                         val typeOfList =
-                            ((it.genericType as ParameterizedType).actualTypeArguments.first() as ParameterizedType).rawType as Class<*>
+                            (it.genericType as ParameterizedType).actualTypeArguments.first() as Class<*>
                         when {
                             typeOfList == String::class.java -> bundle.getStringArrayList(key)
                             typeOfList == Int::class.java -> bundle.getIntegerArrayList(key)
@@ -320,6 +351,8 @@ object Blink {
                     it.set(host, this)
                 }
             }
+        val superClass = clazz.superclass ?: return
+        injectFragment(superClass, bundle, host)
     }
 
     private fun Uri.stringParams(key: String) = getQueryParameter(key)
@@ -329,4 +362,7 @@ object Blink {
     private fun Uri.doubleParams(key: String) = getQueryParameter(key)?.toDoubleOrNull()
     private fun Uri.booleanParams(key: String) = getQueryParameter(key)?.toBooleanStrictOrNull()
         ?: (getQueryParameter(key)?.toIntOrNull() == 1)
+
+    @JvmStatic
+    fun join(strings: List<String>?) = strings?.let { if (it.size > 1) it.joinToString(",") else it.firstOrNull() }
 }

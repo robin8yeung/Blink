@@ -8,6 +8,7 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultCallback
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.net.toUri
+import androidx.fragment.app.Fragment
 import com.seewo.blink.interceptor.Interceptor
 import com.seewo.blink.interceptor.InterruptedException
 
@@ -93,8 +94,16 @@ fun Activity.stringParams(name: String): Lazy<String?> = lazy {
     intent.data?.getQueryParameter(name)
 }
 
+fun Activity.stringParamsNonNull(name: String): Lazy<String> = lazy {
+    intent.data?.getQueryParameter(name) ?: ""
+}
+
 fun Activity.stringsParams(name: String): Lazy<List<String>?> = lazy {
     intent.data?.getQueryParameters(name)
+}
+
+fun Activity.stringsParamsNonNull(name: String): Lazy<List<String>> = lazy {
+    intent.data?.getQueryParameters(name) ?: listOf()
 }
 
 fun Activity.boolParams(name: String, default: Boolean = false): Lazy<Boolean> = lazy {
@@ -117,13 +126,6 @@ fun Activity.doubleParams(name: String, default: Double = 0.0): Lazy<Double> = l
     intent.data?.getQueryParameter(name)?.toDoubleOrNull() ?: default
 }
 
-fun Uri.Builder.appendQueryParameter(key: String, value: Any) = appendQueryParameter(key, "$value")
-
-fun Uri.build(block: Uri.Builder.() -> Unit) = buildUpon().apply(block).build()
-fun String.buildUri(block: Uri.Builder.() -> Unit) = Uri.parse(this).buildUpon().apply(block).build()
-
-fun Interceptor.putInGreenChannel(intent: Intent) = Blink.greenChannel(this, intent)
-
 inline fun <reified T> Activity.enumParams(name: String): Lazy<T?> = lazy {
     if (T::class.java.isEnum) {
         val value = intent.data?.getQueryParameter(name)
@@ -135,3 +137,62 @@ inline fun <reified T> Activity.enumParams(name: String): Lazy<T?> = lazy {
         } else null
     } else null
 }
+
+fun Fragment.stringParams(name: String): Lazy<String?> = lazy {
+    arguments?.getString(name)
+}
+
+fun Fragment.stringsParams(name: String): Lazy<List<String>?> = lazy {
+    arguments?.getStringArrayList(name)
+}
+
+fun Fragment.boolParams(name: String, default: Boolean = false): Lazy<Boolean> = lazy {
+    arguments?.getBoolean(name, default) ?: default
+}
+
+fun Fragment.intParams(name: String, default: Int = 0): Lazy<Int> = lazy {
+    arguments?.getInt(name, default) ?: default
+}
+
+fun Fragment.longParams(name: String, default: Long = 0L): Lazy<Long> = lazy {
+    arguments?.getLong(name, default) ?: default
+}
+
+fun Fragment.floatParams(name: String, default: Float = 0f): Lazy<Float> = lazy {
+    arguments?.getFloat(name, default) ?: default
+}
+
+fun Fragment.doubleParams(name: String, default: Double = 0.0): Lazy<Double> = lazy {
+    arguments?.getDouble(name, default) ?: default
+}
+
+inline fun <reified T> Fragment.enumParams(name: String): Lazy<T?> = lazy {
+    if (T::class.java.isEnum) {
+        val valueInt = arguments?.runCatching { getInt(name) }?.getOrNull()
+        val value = arguments?.getString(name)
+        if (valueInt != null) {
+            T::class.java.runCatching { enumConstants!![valueInt] }.getOrNull()
+        } else if (value != null){
+            T::class.java.runCatching { getMethod("valueOf", String::class.java).invoke(null, value) }.getOrNull() as T?
+        } else null
+    } else null
+}
+
+fun Uri.Builder.appendQueryParameter(key: String, value: Any) = appendQueryParameter(key, "$value")
+
+fun Uri.Builder.append(key: String, value: Any?): Uri.Builder {
+    value ?: return this
+    if (value is List<*>) {
+        if (value.isEmpty()) {
+            return appendQueryParameter(key, "")
+        } else {
+            return appendQueryParameter(key, value.joinToString(","))
+        }
+    }
+    return appendQueryParameter(key, "$value")
+}
+
+fun Uri.build(block: Uri.Builder.() -> Unit) = buildUpon().apply(block).build()
+fun String.buildUri(block: Uri.Builder.() -> Unit) = Uri.parse(this).buildUpon().apply(block).build()
+
+fun Interceptor.putInGreenChannel(intent: Intent) = Blink.greenChannel(this, intent)
