@@ -137,7 +137,12 @@ abstract class BlinkContainerActivity : FragmentActivity() {
 
     private fun FragmentTransaction.launchFragment(fragment: Fragment) {
         currentFragment?.let {
-            hide(it)
+            val keepAlive = (fragment as? BlinkContainerFragment)?.keepAlive
+            if (keepAlive?.value == false) {
+                remove(it)
+            } else {
+                hide(it)
+            }
             if (it is BlinkContainerFragment) {
                 addToBackStack(it.fragmentTag)
             } else {

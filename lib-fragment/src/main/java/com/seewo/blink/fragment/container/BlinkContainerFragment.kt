@@ -11,6 +11,7 @@ import androidx.fragment.app.commit
 import com.seewo.blink.fragment.Blink
 import com.seewo.blink.fragment.R
 import com.seewo.blink.fragment.annotation.CustomAnimations
+import com.seewo.blink.fragment.annotation.KeepAlive
 import com.seewo.blink.fragment.annotation.Orientation
 import com.seewo.blink.fragment.annotation.SystemUI
 import com.seewo.blink.fragment.generateFragmentTag
@@ -28,6 +29,9 @@ internal class BlinkContainerFragment : Fragment() {
     private var orientation: Int? = null
     private var systemUISettings: SystemUI = SystemUI()
     var customAnimation: CustomAnimations? = null
+        private set
+
+    var keepAlive: KeepAlive ? = null
         private set
 
     override fun onCreateView(
@@ -91,6 +95,7 @@ internal class BlinkContainerFragment : Fragment() {
             }
             getAnnotation(SystemUI::class.java)?.let { systemUISettings = it }
             customAnimation = getAnnotation(CustomAnimations::class.java)
+            keepAlive = getAnnotation(KeepAlive::class.java)
         }
         if (isAdded) {
             childFragmentManager.commit {
