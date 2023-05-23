@@ -31,6 +31,7 @@
         </activity>
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="portrait"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -38,6 +39,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="com.seewo.blink.example.fragment.FragmentContainerActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode">
+            <meta-data
+                android:name="android.notch_support"
+                android:value="true" />
+
+        </activity>
+        <meta-data
+            android:name="android.max_aspect"
+            android:value="2.2" />
     </application>
 
 </manifest>

@@ -9,7 +9,7 @@
             android:exported="false"
             tools:node="merge">
             <meta-data
-                android:name="com.seewo.blink.BlinkInitializer"
+                android:name="com.seewo.blink.fragment.BlinkInitializer"
                 android:value="androidx.startup" />
         </provider>
         <activity android:name="com.seewo.blink.stub.StubActivity"

@@ -272,7 +272,7 @@ object Blink {
                     Float::class.java -> uri.floatParams(key)
                     Double::class.java -> uri.doubleParams(key)
                     Boolean::class.java -> uri.booleanParams(key)
-                    List::class.java -> when ((it.genericType as ParameterizedType).actualTypeArguments.first()) {
+                    ArrayList::class.java, List::class.java -> when ((it.genericType as ParameterizedType).actualTypeArguments.first()) {
                         String::class.java -> uri.getQueryParameters(key)
                         else -> null
                     }
@@ -364,5 +364,7 @@ object Blink {
         ?: (getQueryParameter(key)?.toIntOrNull() == 1)
 
     @JvmStatic
-    fun join(strings: List<String>?) = strings?.let { if (it.size > 1) it.joinToString(",") else it.firstOrNull() }
+    fun appendStrings(builder: Uri.Builder, key: String, strings: List<String>?) {
+        strings?.forEach { builder.append(key, it) }
+    }
 }

@@ -1,13 +1,11 @@
 package com.seewo.blink.example
 
-import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import com.seewo.blink.attach
-import com.seewo.blink.blink
 import com.seewo.blink.detach
-import com.seewo.blink.example.databinding.ActivityExampleBinding
 import com.seewo.blink.example.databinding.ActivityMainBinding
+import com.seewo.blink.example.fragment.FragmentContainerActivity
 import com.seewo.blink.example.interceptor.LoggerInterceptor
 
 class MainActivity : AppCompatActivity() {
@@ -18,7 +16,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         loggerInterceptor.attach()
         binding.button.setOnClickListener {
-            blink(Uris.EXAMPLE.buildUpon().appendQueryParameter("name", "Blink").build())
+            FragmentContainerActivity.start(it.context)
         }
     }
 

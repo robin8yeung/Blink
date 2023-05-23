@@ -11,7 +11,10 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/blink-annotation" />
+            <option value="$PROJECT_DIR$/blink-ksp" />
             <option value="$PROJECT_DIR$/lib" />
+            <option value="$PROJECT_DIR$/lib-fragment" />
           </set>
         </option>
       </GradleProjectSettings>

@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'com.google.devtools.ksp'
 }
 
 android {
@@ -37,8 +38,13 @@ android {
 dependencies {
 
     implementation 'androidx.core:core-ktx:1.7.0'
+    implementation 'androidx.fragment:fragment-ktx:1.5.7'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation project(":lib")
+    implementation project(":lib-fragment")
+    implementation project(":blink-annotation")
+    implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.10"
+    ksp project(':blink-ksp')
 }

@@ -182,11 +182,15 @@ fun Uri.Builder.appendQueryParameter(key: String, value: Any) = appendQueryParam
 
 fun Uri.Builder.append(key: String, value: Any?): Uri.Builder {
     value ?: return this
-    if (value is List<*>) {
+    if (value is Collection<*>) {
         if (value.isEmpty()) {
             return appendQueryParameter(key, "")
         } else {
-            return appendQueryParameter(key, value.joinToString(","))
+            value.forEach { item ->
+                item ?: return@forEach
+                appendQueryParameter(key, item)
+            }
+            return this
         }
     }
     return appendQueryParameter(key, "$value")
