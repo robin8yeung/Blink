@@ -23,11 +23,11 @@
         <activity
             android:name=".ExampleActivity"
             android:exported="false" >
-            <intent-filter>
-                <action android:name="blink.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <data android:scheme="@string/scheme" android:host="@string/host" android:path="/example"/>
-            </intent-filter>
+<!--            <intent-filter>-->
+<!--                <action android:name="blink.action.VIEW"/>-->
+<!--                <category android:name="android.intent.category.DEFAULT"/>-->
+<!--                <data android:scheme="@string/scheme" android:host="@string/host" android:path="/example"/>-->
+<!--            </intent-filter>-->
         </activity>
         <activity
             android:name=".MainActivity"

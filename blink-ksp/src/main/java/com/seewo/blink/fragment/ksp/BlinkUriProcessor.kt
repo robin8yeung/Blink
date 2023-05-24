@@ -1,5 +1,6 @@
 package com.seewo.blink.fragment.ksp
 
+import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
@@ -12,10 +13,15 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 
+private const val FRAGMENT_ROUTE_MAP_CLASS = "com.seewo.blink.fragment.RouteMap"
+private const val ACTIVITY_ROUTE_MAP_CLASS = "com.seewo.blink.RouteMap"
+
 class BlinkUriProcessor(
     private val processingEnv: SymbolProcessorEnvironment
 ) : SymbolProcessor {
     private var round = 0
+    private val logger = processingEnv.logger
+    private val codeGenerator = processingEnv.codeGenerator
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         if (round != 0) return emptyList()
@@ -28,57 +34,83 @@ class BlinkUriProcessor(
             val type = it.asType(emptyList())
             metadataList.add(BlinkMetadataEntry(packageName, type.toString()))
         }
-        processingEnv.logger.warn("metadataList = $metadataList")
+        logger.warn("metadataList = $metadataList")
+        val activityClass = resolver.getClassDeclarationByName("android.app.Activity")?.asType(emptyList()) ?: return emptyList()
+        val fragmentClass = resolver.getClassDeclarationByName("androidx.fragment.app.Fragment")?.asType(emptyList())
+        val fragmentRouteMap = resolver.getClassDeclarationByName(FRAGMENT_ROUTE_MAP_CLASS)
+        val activityRouteMap = resolver.getClassDeclarationByName(ACTIVITY_ROUTE_MAP_CLASS)
 
         val symbols = resolver.getSymbolsWithAnnotation(BlinkUri::class.qualifiedName!!)
         val elements = symbols.filterIsInstance<KSClassDeclaration>()
-        val entries = mutableListOf<BlinkUriEntry>()
+        val fragmentEntries = mutableListOf<BlinkUriEntry>()
+        val activityEntries = mutableListOf<BlinkUriEntry>()
         elements.forEach {
             val packageName = it.packageName.asString()
             val type = it.asType(emptyList())
 
-            processingEnv.logger.warn("asType >> $packageName.$type")
-            it.annotations.forEach { ks ->
-                processingEnv.logger.warn("forEach >> $ks")
-                if (ks.shortName.asString() == BlinkUri::class.java.simpleName) {
-                    ks.arguments.forEach { arg ->
-                        if (arg.name?.asString() == "value") {
-                            val uri = arg.value as List<String>
-                            entries.add(
-                                BlinkUriEntry(
-                                    packageName, "$type", uri
+            if (fragmentClass?.isAssignableFrom(type) == true && fragmentRouteMap != null) {
+                it.annotations.forEach { ks ->
+                    if (ks.shortName.asString() == BlinkUri::class.java.simpleName) {
+                        ks.arguments.forEach { arg ->
+                            if (arg.name?.asString() == "value") {
+                                val uris = arg.value as List<String>
+                                fragmentEntries.add(
+                                    BlinkUriEntry(
+                                        packageName, "$type", uris
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
                 }
             }
+            logger.warn("fragmentEntries = $fragmentEntries")
+            if (activityClass.isAssignableFrom(type) && activityRouteMap != null) {
+                it.annotations.forEach { ks ->
+                    if (ks.shortName.asString() == BlinkUri::class.java.simpleName) {
+                        ks.arguments.forEach { arg ->
+                            if (arg.name?.asString() == "value") {
+                                val uris = arg.value as List<String>
+                                activityEntries.add(
+                                    BlinkUriEntry(
+                                        packageName, "$type", uris
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            logger.warn("activityEntries = $activityEntries")
         }
-
 
         metadataList.firstOrNull()?.let {
             val metadataClassName = "${it.packageName}.${it.className}"
-            val meatadata = ClassName(it.packageName, it.className)
+            val metadata = ClassName(it.packageName, it.className)
             val fileSpec = FileSpec.builder("com.seewo.blink", "Initializer\$${metadataClassName.replace('.', '$')}")
                 .addFunction(FunSpec.builder("_inject")
-                    .receiver(meatadata)
+                    .receiver(metadata)
                     .apply {
-                        entries.forEach {
+                        fragmentEntries.forEach {
                             it.uris.forEach { uri ->
-                                addStatement("com.seewo.blink.fragment.RouteMetadata.register(%S, %T::class.java)", uri, ClassName(it.packageName, it.className))
+                                addStatement("$FRAGMENT_ROUTE_MAP_CLASS.register(%S, %T::class.java)", uri, ClassName(it.packageName, it.className))
+                            }
+                        }
+                        activityEntries.forEach {
+                            it.uris.forEach { uri ->
+                                addStatement("$ACTIVITY_ROUTE_MAP_CLASS.register(%S, %T::class.java)", uri, ClassName(it.packageName, it.className))
                             }
                         }
                     }
                     .build())
                 .build()
 
-            processingEnv.logger.warn("processingEnv.codeGenerator.generatedFile = ${processingEnv.codeGenerator.generatedFile}")
-            processingEnv.codeGenerator.createNewFile(Dependencies.ALL_FILES, fileSpec.packageName, fileSpec.name).use {
+            codeGenerator.createNewFile(Dependencies.ALL_FILES, fileSpec.packageName, fileSpec.name).use {
                 it.write(fileSpec.toString().toByteArray())
             }
         }
 
         round++
-        return listOf()
+        return emptyList()
     }
 }

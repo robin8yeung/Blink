@@ -11,7 +11,6 @@ class FragmentContainerActivity: BlinkContainerActivity() {
     companion object {
         @JvmStatic
         fun start(context: Context) {
-            RouteMetadata().inject()
             FragmentLoggerInterceptor().attach()
             context.startActivity(Intent(context, FragmentContainerActivity::class.java))
         }

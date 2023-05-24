@@ -3,6 +3,12 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
 
+if (LOCAL_DEBUG.toBoolean()) {
+    apply from: "${project.rootDir}/gradle/local-maven-push.gradle"
+} else {
+    apply from: "${project.rootDir}/gradle/jfrog-push-java.gradle"
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8

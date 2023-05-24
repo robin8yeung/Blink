@@ -2,7 +2,11 @@ plugins {
     id 'java-library'
     id 'org.jetbrains.kotlin.jvm'
 }
-
+if (LOCAL_DEBUG.toBoolean()) {
+    apply from: "${project.rootDir}/gradle/local-maven-push.gradle"
+} else {
+    apply from: "${project.rootDir}/gradle/jfrog-push-java.gradle"
+}
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.10"
     implementation "com.google.devtools.ksp:symbol-processing-api:1.6.21-1.0.6"

@@ -42,8 +42,9 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation project(":lib")
-    implementation project(":lib-fragment")
+    implementation "androidx.startup:startup-runtime:1.1.1"
+    implementation project(':blink-activity')
+    implementation project(':blink-fragment')
     implementation project(":blink-annotation")
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.10"
     ksp project(':blink-ksp')
