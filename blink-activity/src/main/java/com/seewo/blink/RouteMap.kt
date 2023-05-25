@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import androidx.core.net.toUri
+import com.seewo.blink.utils.baseUri
 
 /**
  * 路由表，可手动注册，也可通过ksp动态注册
@@ -27,6 +28,3 @@ object RouteMap {
 
 private val String.baseUri: String
     get() = split("?").first()
-
-private val Uri.baseUri: String
-    get() = "$scheme://$authority$path"

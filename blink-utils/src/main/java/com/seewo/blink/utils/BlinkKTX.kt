@@ -22,4 +22,8 @@ fun Uri.Builder.append(key: String, value: Any?): Uri.Builder {
 }
 
 fun Uri.build(block: Uri.Builder.() -> Unit) = buildUpon().apply(block).build()
+
+val Uri.baseUri: String
+    get() = "$scheme://$authority$path"
+
 fun String.buildUri(block: Uri.Builder.() -> Unit) = Uri.parse(this).buildUpon().apply(block).build()

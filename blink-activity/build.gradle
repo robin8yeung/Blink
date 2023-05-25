@@ -39,5 +39,5 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation "androidx.startup:startup-runtime:1.1.1"
     api "com.seewo.library:blink-utils:$POM_VERSION_NAME"
-//    api project("blink-utils")
+//    api project(":blink-utils")
 }
