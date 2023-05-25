@@ -1,4 +1,4 @@
-package com.seewo.blink.example
+package com.seewo.blink.example.activity
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -10,6 +10,7 @@ import com.seewo.blink.annotation.BlinkUri
 import com.seewo.blink.attach
 import com.seewo.blink.blink
 import com.seewo.blink.detach
+import com.seewo.blink.example.Uris
 import com.seewo.blink.example.databinding.ActivityExampleBinding
 import com.seewo.blink.example.interceptor.ExampleInterceptor
 

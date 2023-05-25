@@ -1,4 +1,4 @@
-package com.seewo.blink.example
+package com.seewo.blink.example.activity
 
 import android.app.Activity
 import android.content.Intent
@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.seewo.blink.annotation.BlinkUri
 import com.seewo.blink.blink
 import com.seewo.blink.createBlinkIntent
+import com.seewo.blink.example.Uris
 import com.seewo.blink.example.databinding.ActivityExample2Binding
 
 @BlinkUri("blink://navigator/example2")

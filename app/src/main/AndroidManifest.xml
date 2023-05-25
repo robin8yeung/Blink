@@ -12,7 +12,7 @@
         android:theme="@style/Theme.Blink"
         tools:targetApi="31">
         <activity
-            android:name=".Example2Activity"
+            android:name=".activity.Example2Activity"
             android:exported="false" >
             <intent-filter>
                 <action android:name="blink.action.VIEW"/>
@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ExampleActivity"
+            android:name=".activity.ExampleActivity"
             android:exported="false" >
 <!--            <intent-filter>-->
 <!--                <action android:name="blink.action.VIEW"/>-->

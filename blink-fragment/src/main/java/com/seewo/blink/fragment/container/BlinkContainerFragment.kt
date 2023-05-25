@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import com.seewo.blink.fragment.Blink
 import com.seewo.blink.fragment.R
+import com.seewo.blink.fragment.RouteMap
 import com.seewo.blink.fragment.annotation.CustomAnimations
 import com.seewo.blink.fragment.annotation.KeepAlive
 import com.seewo.blink.fragment.annotation.Orientation
@@ -31,7 +32,7 @@ internal class BlinkContainerFragment : Fragment() {
     var customAnimation: CustomAnimations? = null
         private set
 
-    var keepAlive: KeepAlive ? = null
+    var keepAlive: KeepAlive? = null
         private set
 
     override fun onCreateView(
@@ -86,6 +87,7 @@ internal class BlinkContainerFragment : Fragment() {
     }
 
     internal fun attach(fragment: Fragment) {
+        fragment.checkException()
         this.fragment = fragment
         arguments = fragment.arguments
         fragmentTag = fragment.generateFragmentTag
@@ -110,6 +112,16 @@ internal class BlinkContainerFragment : Fragment() {
         }
     }
 
+    private fun Fragment.checkException() {
+        if (this is NullFragment) throw RuntimeException(
+            "Cannot find fragment with uri: ${
+                this.arguments?.getString(
+                    RouteMap.KEY_URI
+                )
+            }"
+        )
+    }
+
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         mayUpdateFragmentSettings()
@@ -121,7 +133,8 @@ internal class BlinkContainerFragment : Fragment() {
     }
 
     fun onNewArguments(newArguments: Bundle?) {
-        when(val currentFragment = childFragmentManager.findFragmentById(R.id.blink_container_fragment_root)) {
+        when (val currentFragment =
+            childFragmentManager.findFragmentById(R.id.blink_container_fragment_root)) {
             is ReEnterFragment -> currentFragment.onNewArguments(newArguments)
         }
     }
@@ -129,7 +142,11 @@ internal class BlinkContainerFragment : Fragment() {
     private val windowBackground: Int
         get() {
             val typedValue = TypedValue()
-            requireContext().theme.resolveAttribute(android.R.attr.windowBackground, typedValue, true)
+            requireContext().theme.resolveAttribute(
+                android.R.attr.windowBackground,
+                typedValue,
+                true
+            )
             val colorRes = typedValue.resourceId
             return requireContext().resources.getColor(colorRes)
         }
