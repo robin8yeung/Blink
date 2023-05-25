@@ -53,7 +53,10 @@ class BlinkUriProcessor(
                     if (ks.shortName.asString() == BlinkUri::class.java.simpleName) {
                         ks.arguments.forEach { arg ->
                             if (arg.name?.asString() == "value") {
-                                val uris = arg.value as List<String>
+                                logger.info("bind ${arg.value} to ${arg.value!!::class.java}")
+                                val uris = if (arg.value is String) {
+                                    listOf(arg.value as String)
+                                } else arg.value as List<String>
                                 fragmentEntries.add(
                                     BlinkUriEntry(
                                         packageName, "$type", uris
@@ -70,8 +73,7 @@ class BlinkUriProcessor(
                     if (ks.shortName.asString() == BlinkUri::class.java.simpleName) {
                         ks.arguments.forEach { arg ->
                             if (arg.name?.asString() == "value") {
-                                logger.warn("arg.value = ${arg.value}")
-                                logger.warn("arg.value.class = ${arg.value!!::class.java}")
+                                logger.info("bind ${arg.value} to ${arg.value!!::class.java}")
                                 val uris = if (arg.value is String) {
                                     listOf(arg.value as String)
                                 } else arg.value as List<String>
@@ -85,7 +87,6 @@ class BlinkUriProcessor(
                     }
                 }
             }
-            logger.warn("activityEntries = $activityEntries")
         }
 
         metadataList.firstOrNull()?.let {

@@ -184,7 +184,7 @@ object Blink {
     ) {
         interceptors.process(context, intent)
         intent.data?.let {
-            intent.component = RouteMap.get(it)!!.component
+            intent.component = RouteMap.get(it).component
         }
 
         if (onResult == null) {

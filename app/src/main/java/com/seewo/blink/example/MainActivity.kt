@@ -1,6 +1,7 @@
 package com.seewo.blink.example
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.seewo.blink.attach
 import com.seewo.blink.blink
@@ -22,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         switchInterceptor.attach()
         binding.button.setOnClickListener {
 //            FragmentContainerActivity.start(it.context)
-            blink("blink://navigator/example?a=1")
+            blink("blink://navigator/example11?a=1").onFailure { Log.e("robin", it.message, it) }
         }
     }
 
