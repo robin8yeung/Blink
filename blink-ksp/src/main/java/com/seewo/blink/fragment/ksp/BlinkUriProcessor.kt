@@ -70,7 +70,11 @@ class BlinkUriProcessor(
                     if (ks.shortName.asString() == BlinkUri::class.java.simpleName) {
                         ks.arguments.forEach { arg ->
                             if (arg.name?.asString() == "value") {
-                                val uris = arg.value as List<String>
+                                logger.warn("arg.value = ${arg.value}")
+                                logger.warn("arg.value.class = ${arg.value!!::class.java}")
+                                val uris = if (arg.value is String) {
+                                    listOf(arg.value as String)
+                                } else arg.value as List<String>
                                 activityEntries.add(
                                     BlinkUriEntry(
                                         packageName, "$type", uris

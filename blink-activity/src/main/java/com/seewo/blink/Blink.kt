@@ -183,6 +183,10 @@ object Blink {
         onResult: ActivityResultCallback<ActivityResult>?
     ) {
         interceptors.process(context, intent)
+        intent.data?.let {
+            intent.component = RouteMap.get(it)!!.component
+        }
+
         if (onResult == null) {
             context.startActivity(intent.apply {
                 if (context !is Activity) {

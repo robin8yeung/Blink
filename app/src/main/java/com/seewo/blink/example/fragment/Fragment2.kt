@@ -16,7 +16,7 @@ import com.seewo.blink.fragment.annotation.SystemUI
 import com.seewo.blink.fragment.blink
 import com.seewo.blink.fragment.pop
 
-@BlinkUri("blink://route/f2")
+@BlinkUri(value = ["blink://route/f2", "blink://route/f3"])
 @Orientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
 @CustomAnimations
 @SystemUI(hideNavigationBar = true, )
