@@ -33,7 +33,10 @@ implementation "com.seewo.library:blink-activity:$version"
 #### uri
 
 通过BlinkUri注解来定义页面路由uri。路由uri作为路由地址用于映射页面，发起路由时会从路由表中。
-注意：路由表必须完成注入才能正常使用，关于路由表注入请先了解 [blink-annotation](../blink-annotation/README.md)
+
+#### 注意：路由表必须完成注入才能正常使用
+
+> 关于路由表注入请先了解 [blink-annotation](../blink-annotation/README.md)
 
 ```kotlin
 object Uris {
