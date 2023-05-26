@@ -1,4 +1,4 @@
-package com.seewo.blink.example.interceptor
+package com.seewo.blink.example.activity.interceptor
 
 import android.content.Context
 import android.content.Intent

@@ -9,12 +9,12 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import com.seewo.blink.fragment.Blink
-import com.seewo.blink.fragment.FragmentNotFoundException
 import com.seewo.blink.fragment.R
 import com.seewo.blink.fragment.annotation.CustomAnimations
 import com.seewo.blink.fragment.annotation.KeepAlive
 import com.seewo.blink.fragment.annotation.Orientation
 import com.seewo.blink.fragment.annotation.SystemUI
+import com.seewo.blink.fragment.exception.FragmentNotFoundException
 import com.seewo.blink.fragment.generateFragmentTag
 import com.seewo.blink.fragment.mode.ReEnterFragment
 import com.seewo.blink.fragment.utils.hideNavigationBar
@@ -64,7 +64,7 @@ internal class BlinkContainerFragment : Fragment() {
         if (isAdded && !isHidden && userVisibleHint && isResumed) {
             orientation?.let { requireActivity().requestedOrientation = it }
             systemUISettings.run {
-                requireActivity().setStatusBarTransparent(brightLight)
+                requireActivity().setStatusBarTransparent(brightnessLight)
                 if (hideStatusBar) {
                     requireActivity().hideStatusBar()
                 } else {

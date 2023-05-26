@@ -1,10 +1,17 @@
 package com.seewo.blink.example
 
-import android.net.Uri
-
 object Uris {
-    private const val BASE_URI = "blink://navigator"
-    val EXAMPLE = Uri.parse("$BASE_URI/example")!!
-    val EXAMPLE_2 = Uri.parse("$BASE_URI/example/2")!!
-    val NOT_EXIST = Uri.parse("$BASE_URI/example/3")!!
+    private const val BASE_URI = "blink://example"
+
+    // Activity
+    const val ACTIVITY = "$BASE_URI/activity"
+    const val HOME_ACTIVITY = "$BASE_URI/home/activity"
+    const val NEXT = "$BASE_URI/next"
+    const val RETURN_RESULT = "$BASE_URI/return/result"
+    const val NOT_EXISTS = "$BASE_URI/not_exists"
+
+    // Fragment
+    const val FRAGMENT = "$BASE_URI/fragment"
+    const val NEXT_FRAGMENT = "$BASE_URI/next/fragment"
+    const val RETURN_RESULT_FRAGMENT = "$BASE_URI/return/result/fragment"
 }

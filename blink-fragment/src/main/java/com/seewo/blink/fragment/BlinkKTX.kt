@@ -10,10 +10,10 @@ import com.seewo.blink.fragment.interceptor.InterruptedException
 
 /**
  * @param uri 字符串类型的Uri
- * @param onResult ActivityResult回调。
- * 注意：对于Context不是FragmentActivity的情况设置回调，可能会导致共享元素动画异常
+ * @param onResult 返回回调。
+ *
  * @return 执行结果，可能存在以下两种异常
- * - ActivityNotFoundException 无法找到uri对应的Activity
+ * - FragmentNotFoundException 无法找到uri对应的Fragment
  * - 自定义异常 路由被拦截
  */
 fun Fragment.blink(
@@ -21,29 +21,48 @@ fun Fragment.blink(
     onResult: ((Bundle?) -> Unit)? = null
 ): Result<Unit> = runCatching { Blink.navigation(uri, this@blink, onResult) }
 
+/**
+ * @param uri 字符串类型的Uri
+ * @param onResult 返回回调。
+ *
+ * @return 执行结果，可能存在以下两种异常
+ * - FragmentNotFoundException 无法找到uri对应的Fragment
+ * - 自定义异常 路由被拦截
+ */
 fun fragmentBlink(
     uri: String,
     onResult: ((Bundle?) -> Unit)? = null
 ): Result<Unit> = runCatching { Blink.navigation(uri, null, onResult) }
 
 /**
- * @param fragment 需要跳转的Fragment
- * @param onResult ActivityResult回调。
- * 注意：对于Context不是FragmentActivity的情况设置回调，可能会导致共享元素动画异常
+ * @param uri Uri
+ * @param onResult 返回回调。
+ *
  * @return 执行结果，可能存在以下两种异常
- * - ActivityNotFoundException 无法找到uri对应的Activity
+ * - FragmentNotFoundException 无法找到uri对应的Fragment
  * - 自定义异常 路由被拦截
  */
 fun Fragment.blink(
-    fragment: Fragment,
+    uri: Uri,
     onResult: ((Bundle?) -> Unit)? = null
-): Result<Unit> = runCatching { Blink.navigation(fragment, this@blink, onResult) }
+): Result<Unit> = runCatching { Blink.navigation(uri, this@blink, onResult) }
 
+/**
+ * @param uri Uri
+ * @param onResult 返回回调。
+ *
+ * @return 执行结果，可能存在以下两种异常
+ * - FragmentNotFoundException 无法找到uri对应的Fragment
+ * - 自定义异常 路由被拦截
+ */
 fun fragmentBlink(
-    fragment: Fragment,
+    uri: Uri,
     onResult: ((Bundle?) -> Unit)? = null
-): Result<Unit> = runCatching { Blink.navigation(fragment, null, onResult) }
+): Result<Unit> = runCatching { Blink.navigation(uri, null, onResult) }
 
+/**
+ * 返回，相当于Activity的finish，但可以返回数据给路由发起者
+ */
 fun Fragment.pop(result: Bundle? = null) {
     (parentFragment as? BlinkContainerFragment)?.popResult(result) ?: parentFragmentManager.popBackStack()
 }
@@ -69,45 +88,45 @@ fun Interceptor.interrupt(msg: String? = null) {
     throw InterruptedException(this, msg)
 }
 
-fun Uri.stringParams(name: String): Lazy<String?> = lazy {
-    getQueryParameter(name)
+fun Fragment.stringParams(name: String): Lazy<String?> = lazy {
+    arguments?.uriOrNull?.getQueryParameter(name)
 }
 
-fun Uri.stringParamsNonNull(name: String): Lazy<String> = lazy {
-    getQueryParameter(name) ?: ""
+fun Fragment.stringParamsNonNull(name: String): Lazy<String> = lazy {
+    arguments?.uriOrNull?.getQueryParameter(name) ?: ""
 }
 
-fun Uri.stringsParams(name: String): Lazy<List<String>?> = lazy {
-    getQueryParameters(name)
+fun Fragment.stringsParams(name: String): Lazy<List<String>?> = lazy {
+    arguments?.uriOrNull?.getQueryParameters(name)
 }
 
-fun Uri.stringsParamsNonNull(name: String): Lazy<List<String>> = lazy {
-    getQueryParameters(name) ?: listOf()
+fun Fragment.stringsParamsNonNull(name: String): Lazy<List<String>> = lazy {
+    arguments?.uriOrNull?.getQueryParameters(name) ?: listOf()
 }
 
-fun Uri.boolParams(name: String, default: Boolean = false): Lazy<Boolean> = lazy {
-    getBooleanQueryParameter(name, default)
+fun Fragment.boolParams(name: String, default: Boolean = false): Lazy<Boolean> = lazy {
+    arguments?.uriOrNull?.getBooleanQueryParameter(name, default) ?: default
 }
 
-fun Uri.intParams(name: String, default: Int = 0): Lazy<Int> = lazy {
-    getQueryParameter(name)?.toIntOrNull() ?: default
+fun Fragment.intParams(name: String, default: Int = 0): Lazy<Int> = lazy {
+    arguments?.uriOrNull?.getQueryParameter(name)?.toIntOrNull() ?: default
 }
 
-fun Uri.longParams(name: String, default: Long = 0L): Lazy<Long> = lazy {
-    getQueryParameter(name)?.toLongOrNull() ?: default
+fun Fragment.longParams(name: String, default: Long = 0L): Lazy<Long> = lazy {
+    arguments?.uriOrNull?.getQueryParameter(name)?.toLongOrNull() ?: default
 }
 
-fun Uri.floatParams(name: String, default: Float = 0f): Lazy<Float> = lazy {
-    getQueryParameter(name)?.toFloatOrNull() ?: default
+fun Fragment.floatParams(name: String, default: Float = 0f): Lazy<Float> = lazy {
+    arguments?.uriOrNull?.getQueryParameter(name)?.toFloatOrNull() ?: default
 }
 
-fun Uri.doubleParams(name: String, default: Double = 0.0): Lazy<Double> = lazy {
-    getQueryParameter(name)?.toDoubleOrNull() ?: default
+fun Fragment.doubleParams(name: String, default: Double = 0.0): Lazy<Double> = lazy {
+    arguments?.uriOrNull?.getQueryParameter(name)?.toDoubleOrNull() ?: default
 }
 
-inline fun <reified T> Uri.enumParams(name: String): Lazy<T?> = lazy {
+inline fun <reified T> Fragment.enumParams(name: String): Lazy<T?> = lazy {
     if (T::class.java.isEnum) {
-        val value = getQueryParameter(name)
+        val value = arguments?.uriOrNull?.getQueryParameter(name)
         val valueInt = value?.toIntOrNull()
         if (valueInt != null) {
             T::class.java.runCatching { enumConstants!![valueInt] }.getOrNull()
@@ -117,12 +136,16 @@ inline fun <reified T> Uri.enumParams(name: String): Lazy<T?> = lazy {
     } else null
 }
 
-val Fragment.uriNonNull: Lazy<Uri>
-    get()  = lazy {
-        arguments!!.getString(RouteMap.KEY_URI)!!.toUri()
-    }
+val Bundle.uriNonNull: Uri
+    get() = uriOrNull!!
 
-val Fragment.uriOrNull: Lazy<Uri?>
-    get()  = lazy {
-        arguments?.getString(RouteMap.KEY_URI)?.runCatching { toUri() }?.getOrNull()
-    }
+val Bundle.uriOrNull: Uri?
+    get() = getParcelable(RouteMap.KEY_URI)
+
+fun Bundle.setUri(uri: String) {
+    setUri(uri.toUri())
+}
+
+fun Bundle.setUri(uri: Uri) {
+    putParcelable(RouteMap.KEY_URI, uri)
+}

@@ -18,22 +18,18 @@ internal class Interceptors {
         interceptors.remove(interceptor)
     }
 
-    fun process(from: Fragment?, to: Fragment): Fragment? {
-        var target = to
-        interceptors.forEach {
-            if (!target.isInGreenChannel(it) && it.filter(target)) {
-                target = it.process(from, target) ?: return null
-            }
+    fun process(from: Fragment?, target: Bundle) {
+        interceptors.filter {
+            it.filter(target) && !target.isInGreenChannel(it)
+        }.forEach {
+            it.process(from, target)
         }
-        return target
     }
 
-    private fun Fragment.isInGreenChannel(interceptor: Interceptor): Boolean =
-        arguments?.getSerializable(GREEN_CHANNEL) == interceptor::class.java
+    private fun Bundle.isInGreenChannel(interceptor: Interceptor): Boolean =
+        getSerializable(GREEN_CHANNEL) == interceptor::class.java
 }
 
-fun Interceptor.putInGreenChannel(fragment: Fragment) {
-    fragment.arguments = (fragment.arguments ?: Bundle()).apply {
-        putSerializable(GREEN_CHANNEL, this@putInGreenChannel::class.java)
-    }
+fun Interceptor.putInGreenChannel(target: Bundle) {
+    target.putSerializable(GREEN_CHANNEL, this::class.java)
 }

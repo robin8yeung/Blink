@@ -2,6 +2,7 @@ package com.seewo.blink.fragment
 
 import android.net.Uri
 import android.os.Bundle
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.seewo.blink.fragment.container.BlinkContainerFragment
 import com.seewo.blink.fragment.interceptor.Interceptor
@@ -12,6 +13,8 @@ object Blink {
     private const val REQUEST_TAG = "BLINK#REQUEST#TAG"
     internal var onNavigation: ((fragment: Fragment) -> Unit)? = null
     private val interceptors = Interceptors()
+
+    private val onResults = mutableMapOf<String, (Bundle?) -> Unit>()
 
     /**
      * 添加拦截器
@@ -34,37 +37,35 @@ object Blink {
         from: Fragment? = null,
         onResult: ((Bundle?) -> Unit)? = null
     ) {
-        Uri.parse(uri)
-        RouteMap.get(uri)?.let {
-            from.doNavigation(it, from, onResult)
-        }
+        navigation(uri.toUri(), from, onResult)
     }
 
-    private val onResults = mutableMapOf<String, (Bundle?) -> Unit>()
-
     fun navigation(
-        fragment: Fragment,
+        uri: Uri,
         from: Fragment? = null,
         onResult: ((Bundle?) -> Unit)? = null
     ) {
-        from.doNavigation(fragment, from, onResult)
+        from.doNavigation(uri, onResult)
     }
 
     private fun Fragment?.doNavigation(
-        fragment: Fragment,
-        from: Fragment? = null,
+        uri: Uri,
         onResult: ((Bundle?) -> Unit)? = null
     ) {
+        val to = Bundle().apply {
+            setUri(uri)
+        }
+        interceptors.process(this@doNavigation, to)
         onNavigation?.invoke(BlinkContainerFragment().apply {
-            attach(interceptors.process(this@doNavigation, fragment)?.apply {
-                val requestTag = from?.generateFragmentTag ?: UUID.randomUUID().toString()
+            attach(RouteMap.get(to.uriNonNull).apply {
+                val requestTag = this@doNavigation?.generateFragmentTag ?: UUID.randomUUID().toString()
                 onResult?.let {
                     onResults[requestTag] = onResult
                 }
-                arguments = (arguments ?: Bundle()).apply {
+                arguments = to.apply {
                     putString(REQUEST_TAG, requestTag)
                 }
-            }!!)
+            })
         })
     }
 

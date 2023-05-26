@@ -1,35 +1,23 @@
 package com.seewo.blink.example
 
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import com.seewo.blink.attach
 import com.seewo.blink.blink
-import com.seewo.blink.detach
+import com.seewo.blink.example.activity.interceptor.LoggerInterceptor
 import com.seewo.blink.example.databinding.ActivityMainBinding
-import com.seewo.blink.example.fragment.RouteMetadata
-import com.seewo.blink.example.interceptor.LoggerInterceptor
-import com.seewo.blink.example.interceptor.SwitchInterceptor
+import com.seewo.blink.example.fragment.FragmentContainerActivity
 
 class MainActivity : AppCompatActivity() {
     private val loggerInterceptor = LoggerInterceptor()
-    private val switchInterceptor = SwitchInterceptor()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        RouteMetadata().inject()
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        loggerInterceptor.attach()
-        switchInterceptor.attach()
         binding.button.setOnClickListener {
-//            FragmentContainerActivity.start(it.context)
-            blink("blink://navigator/example11?a=1").onFailure { Log.e("robin", it.message, it) }
+            blink("blink://example/activity")
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        loggerInterceptor.detach()
-        switchInterceptor.detach()
+        binding.buttonFragment.setOnClickListener {
+            FragmentContainerActivity.start(it.context)
+        }
     }
 }

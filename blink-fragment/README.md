@@ -46,7 +46,6 @@ Blink-fragment主要用于实现单Activity应用的路由框架
     - 栈内fragment是否保持状态可以通过注解定义
     - 可通过注解快速定义LaunchMode
 
-
 ## 接入指南
 
 ### 1、依赖引入
@@ -70,74 +69,161 @@ object Uris {
 
 // 为MyFragment定义单个路由uri
 @BlinkUri(Uris.fragment)
-class MyFragment: Fragment() {
+class MyFragment : Fragment() {
     // ....
 }
 
 // 为MyFragment定义多个路由uri
-@BlinkUri(value = [ Uris.fragment, Uris.HOME ])
-class MyFragment: Fragment() {
+@BlinkUri(value = [Uris.fragment, Uris.HOME])
+class MyFragment : Fragment() {
     // ....
 }
 ```
 
-### 3、路由与传参
+### 3、异常处理
+
+kotlin中推荐使用Fragment扩展函数来调用，对于扩展函数的相关方法的返回为Result<Unit>
+，可以从中获取路由结果。路由失败的原因主要有：
+
+- FragmentNotFoundException 无法找到uri对应的Fragment
+- 自定义异常 被路由拦截，推荐在拦截器抛InterruptedException或其子类来进行路由拦截
+
+```kotlin
+blink("blink://navigator/example?name=Blink").onFailure {
+    // 处理异常
+}.onSuccess {
+    // 路由成功
+}
+```
+
+### 4、路由传参
 
 对于路由跳转，使用 Fragment.blink() 扩展函数或 blinkFragment() 顶级函数
 
 > 如果需要对Uri进行复杂的参数设置，可以借助Uri.build()、String.buildUri()等扩展方法，
 > 详见 [blink-utils](../blink-utils/README.md)
 
-#### 异常处理
+### 5、参数获取
 
-kotlin中推荐使用Fragment扩展函数来调用，对于扩展函数的相关方法的返回为Result<Unit>，可以从中获取路由结果。路由失败的原因主要有：
-
-- FragmentNotFoundException 无法找到uri对应的Fragment
-- 自定义异常 被路由拦截，推荐在拦截器抛InterruptedException或其子类来进行路由拦截
-
+在Fragment中获取路由传进来的参数
 
 ```kotlin
-blink("blink://navigator/example?name=Blink")
-```
-
-### 4、参数获取
-
-kotlin中实现参数获取
-
-```kotlin
-
-import android.net.Uri
-
 class ExampleFragment : Fragment() {
-  private val uri: Uri by uriNonNull
 
-  // 业务自行处理Name参数传入
-  private val name: String? by lazy { uri?.getQueryParameter("name") }
+    // 业务自行处理Name参数传入
+    private val name: String? by lazy { arguments?.uriOrNull?.getQueryParameter("name") }
 
-  // 由Blink提供懒加载函数进行参数注入，默认值可选。仅用于Activity
-  private val age: Int by uri.intParams("age", 18)
+    // 由Blink提供懒加载函数进行参数注入，默认值可选。仅用于Activity
+    private val age: Int by intParams("age", 18)
 }
 ```
 
-### 5、增删拦截器
+### 6、结果回调
+
+```kotlin
+class PrevFragment : Fragment() {
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        findViewById<View>(R.id.button).setOnClickListener {
+            // 跳转至EXAMPLE_2
+            blink(Uris.EXAMPLE_2) {
+                // 结果返回回调
+                if (it != null) {
+                    Toast.makeText(this, "Return result: $it", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(this, "Return result: Cancel", Toast.LENGTH_LONG).show()
+                }
+            }.exceptionOrNull()?.let {
+                // 路由如果存在异常
+                Log.e("BLINK", it.message, it)
+                Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+}
+
+class NextFragment : Fragment() {
+    private val uri: Uri by uriNonNull
+    private val name: String? by uri.stringParams("name")
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        findViewById<View>(R.id.button).setOnClickListener {
+            // 点击按钮，返回结果
+            pop(Bundle().apply {
+                putInt("result", 1)
+            })
+        }
+        findViewById<View>(R.id.back).setOnClickListener {
+            // 点击返回，直接返回
+            pop()
+        }
+    }
+}
+```
+
+### 7、LaunchMode
+
+blink-fragment的LaunchMode类似Activity的LaunchMode。
+支持standard，singleTop，singleTask 3种。singleInstance建议新开一个Activity
+但和Activity的LaunchMode实在AndroidManifest中定义的不同，可以通过注解来定义页面的LaunchMode
+
+```kotlin
+// 为MyFragment定义LaunchMode为standard
+@BlinkUri(Uris.fragment)
+class MyFragment : Fragment() {
+    // LaunchMode为默认的standard
+}
+
+// 为MyFragment定义LaunchMode为singleTop，继承SingleTopFragment即可
+@BlinkUri(Uris.fragment)
+class MyFragment : SingleTopFragment() {
+    override fun onNewArguments(arguments: Bundle?) {
+        // 重复打开时，会回调此方法
+    }
+}
+
+// 为MyFragment定义LaunchMode为singleTask，继承SingleTaskFragment即可
+@BlinkUri(Uris.fragment)
+class MyFragment : SingleTaskFragment() {
+    override fun onNewArguments(arguments: Bundle?) {
+        // 重复打开时，会回调此方法
+    }
+}
+```
+
+### 6、属性注解
+
+类似Activity可以在AndroidManifest中定义orientation属性，blink-fragment也支持在Fragment中定义一些属性，同样也是通过注解的方式来定义。
+一些页面的默认外观属性是十分有必要在Fragment中定义的，比如是否全屏，是否显示状态栏等。因为这些Fragment都从属于一个Activity，页面切换时必须把样式设置为当前Fragment的默认样式
+
+| 注解                | 功能                 | 备注                                                                            |
+|--------------------|----------------------|-------------------------------------------------------------------------------|
+| Orientation        | 定义页面默认屏幕方向     | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/Orientation.java)    |
+| SystemUI           | 定义页面样式            | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/SystemUI.kt)         |
+| CustomAnimations   | 定义页面切换转场动画     | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/CustomAnimations.kt) |
+| KeepAlive          | 定义页面是否保活        | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/KeepAlive.java)      |
+
+### 7、增删拦截器
 
 ```kotlin
 // 这里仅用于举例，真实使用时，建议拦截器职责单一
 class LoggerInterceptor : Interceptor {
-  override fun process(from: Fragment?, to: Fragment) = to.apply {
-    // 打印路由信息
-    Log.i("blink", "[from] $from [to] $to [args] ${to.arguments}")
-    // 获取路由请求的参数，修改path并增加参数
-    val uri = to.arguments?.getString(RouteMap.KEY_URI)
-    to.arguments = uri?.buildUri {
-      path("/another")
-      append("new", true)
+    override fun process(from: Fragment?, target: Bundle) {
+        // 打印路由信息
+        Log.i("blink", "[from] $from [target] ${target.uriOrNull}")
+        // 获取路由请求的参数，修改path并增加参数
+        val uri = target.uriOrNull
+        target.setUri(target.uriOrNull?.build {
+            path("/another")
+            append("new", true)
+        })
+        // 对于缺少权限的情况，拦截跳转
+        if (!Permission.hasCameraPermission) {
+            interrupt("缺少必要权限")
+        }
     }
-    // 对于缺少权限的情况，拦截跳转
-    if (!Permission.hasCameraPermission) {
-        interrupt("缺少必要权限")
-    }
-  }
 }
 
 val loggerInterceptor = LoggerInterceptor()
@@ -148,53 +234,6 @@ loggerInterceptor.attach()
 loggerInterceptor.detach()
 ```
 
-### 6、结果回调
-
-```kotlin
-import android.app.Activity
-import android.os.Bundle
-
-class PrevFragment : Fragment() {
-
-  override fun onActivityCreated(savedInstanceState: Bundle?) {
-    super.onActivityCreated(savedInstanceState)
-    findViewById<View>(R.id.button).setOnClickListener {
-      // 跳转至EXAMPLE_2
-      blink(Uris.EXAMPLE_2) {
-        // 结果返回回调
-        if (it != null) {
-          Toast.makeText(this, "Return result: $it", Toast.LENGTH_LONG).show()
-        } else {
-          Toast.makeText(this, "Return result: Cancel", Toast.LENGTH_LONG).show()
-        }
-      }.exceptionOrNull()?.let {
-        // 路由如果存在异常
-        Log.e("BLINK", it.message, it)
-        Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
-      }
-    }
-  }
-}
-
-class NextFragment : Fragment() {
-  private val uri: Uri by uriNonNull
-  private val name: String? by uri.stringParams("name")
-
-  override fun onActivityCreated(savedInstanceState: Bundle?) {
-    super.onActivityCreated(savedInstanceState)
-    findViewById<View>(R.id.button).setOnClickListener {
-      // 点击按钮，返回结果
-      pop(Bundle().apply {
-            putInt("result", 1)
-      })
-    }
-    findViewById<View>(R.id.back).setOnClickListener {
-      // 点击返回，直接返回
-      pop()
-    }
-  }
-}
-```
 ## 特别关注
 
 出于简化使用考虑，整个路由的过程，包括拦截器的处理过程，均是同步调用的，那么当你使用拦截器，需要关注以下一些点：
@@ -202,20 +241,20 @@ class NextFragment : Fragment() {
 - 对于专用拦截器，设置合理的过滤条件，仅对于需要拦截的跳转生效
 - 拦截器中避免做耗时操作
 - 拦截器中需要做异步拦截后跳转（如弹窗等待用户点击后再跳转），可以先拦截此次跳转并弹窗，在弹窗点击后再执行一次新的路由。
-  - 对于这种情况，要小心新的路由可能仍然被当前拦截器拦截，造成死循环，所以如有必要，对Intent增加必要参数，避免被二次拦截，Blink提供了绿色通道来解决这个问题。
+    - 对于这种情况，要小心新的路由可能仍然被当前拦截器拦截，造成死循环，所以如有必要，对Intent增加必要参数，避免被二次拦截，Blink提供了绿色通道来解决这个问题。
 
 ```kotlin
 class PluginInterceptor : Interceptor {
     private val caredPath = Uris.PLUGIN.toUri().path
-  
-  // 仅对plugin的path生效
-    override fun filter(intent: Intent) =
-        intent.data?.path == caredPath
+
+    // 仅对plugin的path生效
+    override fun filter(target: Bundle) =
+        target.uriOrNull?.path == caredPath
 
     // 设置拦截器优先级
     override fun priority() = -2
 
-    override fun process(from: Fragment?, to: Fragment): Fragment? {
+    override fun process(from: Fragment?, target: Bundle) {
         val activity = from?.requireActivity()
         when {
             Build.VERSION.SDK_INT < 29 -> {
@@ -236,7 +275,8 @@ class PluginInterceptor : Interceptor {
                             FLog.e(exception)
                         } else {
                             // 加载完成，执行路由。为避免再次被此拦截器拦截，添加绿色通道属性
-                            from?.blink(putInGreenChannel(to))
+                            from?.blink(putInGreenChannel(target))
+                                ?: blinkFragment(putInGreenChannel(target))
                         }
                     }
                 }

@@ -46,13 +46,13 @@ object Uris {
 
 // 为MyActivity定义单个路由uri
 @BlinkUri(Uris.activity)
-class MyActivity: Activity() {
+class MyActivity : Activity() {
     // ....
 }
 
 // 为MyActivity定义多个路由uri
-@BlinkUri(value = [ Uris.activity, Uris.HOME ])
-class MyActivity: Activity() {
+@BlinkUri(value = [Uris.activity, Uris.HOME])
+class MyActivity : Activity() {
     // ....
 }
 ```
@@ -72,15 +72,25 @@ kotlin中推荐使用扩展函数来调用，对于扩展函数的相关方法�
 - 自定义异常 被路由拦截，推荐在拦截器抛InterruptedException或其子类来进行路由拦截
 
 kotlin中使用
+
 ```kotlin
-context.blink("blink://navigator/example?name=Blink")
+context.blink("blink://navigator/example?name=Blink").onFailure {
+    // 处理异常
+}.onSuccess {
+    // 路由成功
+}
 ```
 
 对于java中使用，提供了Blink为入口的静态方法。但需要注意的是，因为java不支持Result，所以对于Blink的静态方法，异常会直接抛出，如有需要，请务必在java业务端做try-catch
 
 java中使用
+
 ```java
-Blink.navigation(context, Uri.parse("blink://navigation/example?name=Hello"));
+try {
+    Blink.navigation(context,Uri.parse("blink://navigation/example?name=Hello"));
+} catch(Exception e){
+    // 处理异常
+}
 ```
 
 ### 4、参数获取
@@ -93,6 +103,7 @@ import android.app.Activity
 class ExampleActivity : Activity() {
     // 业务自行处理Name参数传入
     private val name: String? by lazy { intent.data?.getQueryParameter("name") }
+
     // 由Blink提供懒加载函数进行参数注入，默认值可选。仅用于Activity
     private val age: Int by intParams("age", 18)
 }
@@ -107,6 +118,7 @@ java中实现参数注入推荐使用BlinkParams注解配合Blink.inject()方法
 
 ```java
 import android.app.Activity;
+
 import com.seewo.blink.BlinkParams;
 import com.seewo.blink.Blink;
 
@@ -116,7 +128,7 @@ public class ExampleActivity extends Activity {
 
     @BlinkParams(name = "age")
     private int age = 18;
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,6 +140,7 @@ public class ExampleActivity extends Activity {
 
 ```java
 import androidx.fragment.app.Fragment;
+
 import com.seewo.blink.BlinkParams;
 import com.seewo.blink.Blink;
 
@@ -159,12 +172,12 @@ class LoggerInterceptor : Interceptor {
         // 获取路由请求的参数，修改path并增加参数
         val uri = intent.data
         intent.data = uri?.build {
-          path("/another")
-          append("new", true)
+            path("/another")
+            append("new", true)
         }
         // 对于缺少权限的情况，拦截跳转
         if (!Permission.hasCameraPermission) {
-          interrupt("缺少必要权限")
+            interrupt("缺少必要权限")
         }
     }
 }
@@ -193,7 +206,7 @@ Blink.remove(loggerInterceptor);
 import android.app.Activity
 
 class PrevActivity : Activity() {
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.example)
@@ -231,6 +244,7 @@ class NextActivity : Activity() {
     }
 }
 ```
+
 ## 特别关注
 
 出于简化使用考虑，整个路由的过程，包括拦截器的处理过程，均是同步调用的，那么当你使用拦截器，需要关注以下一些点：
@@ -243,8 +257,8 @@ class NextActivity : Activity() {
 ```kotlin
 class PluginInterceptor : Interceptor {
     private val caredPath = Uris.PLUGIN.toUri().path
-  
-  // 仅对plugin的path生效
+
+    // 仅对plugin的path生效
     override fun filter(intent: Intent) =
         intent.data?.path == caredPath
 

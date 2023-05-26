@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".App"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -12,27 +13,17 @@
         android:theme="@style/Theme.Blink"
         tools:targetApi="31">
         <activity
-            android:name=".activity.Example2Activity"
-            android:exported="false" >
-            <intent-filter>
-                <action android:name="blink.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <data android:scheme="@string/scheme" android:host="@string/host" android:path="/example/2"/>
-            </intent-filter>
-        </activity>
+            android:name=".activity.NextActivity"
+            android:screenOrientation="portrait"/>
         <activity
-            android:name=".activity.ExampleActivity"
-            android:exported="false" >
-<!--            <intent-filter>-->
-<!--                <action android:name="blink.action.VIEW"/>-->
-<!--                <category android:name="android.intent.category.DEFAULT"/>-->
-<!--                <data android:scheme="@string/scheme" android:host="@string/host" android:path="/example"/>-->
-<!--            </intent-filter>-->
-        </activity>
+            android:name=".activity.ReturnResultActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".activity.HomeActivity"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait"
-            android:exported="true">
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -40,11 +31,11 @@
             </intent-filter>
         </activity>
         <activity android:name="com.seewo.blink.example.fragment.FragmentContainerActivity"
+            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode">
             <meta-data
                 android:name="android.notch_support"
                 android:value="true" />
-
         </activity>
         <meta-data
             android:name="android.max_aspect"

@@ -4,36 +4,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.ExampleActivity">
-
-    <TextView
-        android:id="@+id/hello"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        android:textSize="24sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    tools:context=".activity.NextActivity">
 
     <Button
         android:id="@+id/next"
-        app:layout_constraintTop_toBottomOf="@id/hello"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="18dp"
-        android:text="Next"
+        android:text="导航到一个不存在的页面"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
     <CheckBox
-        android:id="@+id/deny"
-        app:layout_constraintTop_toBottomOf="@id/next"
+        android:id="@+id/home"
+        android:layout_marginStart="16dp"
+        android:text="重定向回ACTIVITY首页"
+        android:textSize="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:text="Deny next"
-        android:checked="true"
+        app:layout_constraintTop_toBottomOf="@id/next"
+        android:textColor="@color/black"
+        android:checked="false"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 

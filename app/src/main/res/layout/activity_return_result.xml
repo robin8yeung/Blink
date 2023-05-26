@@ -4,27 +4,37 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.Example2Activity">
+    tools:context=".activity.NextActivity">
 
-    <Button
-        android:id="@+id/next"
+    <TextView
+        android:id="@+id/params"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="18dp"
-        android:text="Next"
+        android:text="欢迎使用: "
+        android:textSize="18dp"
+        android:textColor="@color/black"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
     <Button
         android:id="@+id/result"
-        app:layout_constraintTop_toBottomOf="@id/next"
+        app:layout_constraintTop_toBottomOf="@id/params"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="18dp"
-        android:text="Return"
-        android:layout_width="wrap_content"
+        android:layout_marginTop="48dp"
+        android:text="返回【再见】"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/finish"
+        app:layout_constraintTop_toBottomOf="@id/result"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:text="直接返回"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,7 +1,5 @@
 package com.seewo.blink.fragment.container
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -20,12 +18,6 @@ import com.seewo.blink.fragment.mode.LaunchMode.valueOf
 import com.seewo.blink.fragment.mode.ReEnterFragment
 
 abstract class BlinkContainerActivity : FragmentActivity() {
-    companion object {
-        @JvmStatic
-        fun start(context: Context) {
-            context.startActivity(Intent(context, BlinkContainerActivity::class.java))
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
