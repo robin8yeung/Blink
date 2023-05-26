@@ -59,7 +59,10 @@ implementation "com.seewo.library:blink-fragment:$version"
 #### uri
 
 通过BlinkUri注解来定义页面路由uri。路由uri作为路由地址用于映射页面，发起路由时会从路由表中。
-注意：路由表必须完成注入才能正常使用，关于路由表注入请先了解 [blink-annotation](../blink-annotation/README.md)
+
+注意：路由表必须完成注入才能正常使用，
+
+关于路由表注入请先了解 [blink-annotation](../blink-annotation/README.md)
 
 ```kotlin
 object Uris {
@@ -82,8 +85,9 @@ class MyFragment : Fragment() {
 
 ### 3、异常处理
 
-kotlin中推荐使用Fragment扩展函数来调用，对于扩展函数的相关方法的返回为Result<Unit>
-，可以从中获取路由结果。路由失败的原因主要有：
+kotlin中推荐使用Fragment扩展函数来调用，对于扩展函数的相关方法的返回为Result<Unit>，可以从中获取路由结果。
+
+路由失败的原因主要有：
 
 - FragmentNotFoundException 无法找到uri对应的Fragment
 - 自定义异常 被路由拦截，推荐在拦截器抛InterruptedException或其子类来进行路由拦截
@@ -166,7 +170,9 @@ class NextFragment : Fragment() {
 ### 7、LaunchMode
 
 blink-fragment的LaunchMode类似Activity的LaunchMode。
+
 支持standard，singleTop，singleTask 3种。singleInstance建议新开一个Activity
+
 但和Activity的LaunchMode实在AndroidManifest中定义的不同，可以通过注解来定义页面的LaunchMode
 
 ```kotlin
@@ -196,7 +202,10 @@ class MyFragment : SingleTaskFragment() {
 ### 6、属性注解
 
 类似Activity可以在AndroidManifest中定义orientation属性，blink-fragment也支持在Fragment中定义一些属性，同样也是通过注解的方式来定义。
-一些页面的默认外观属性是十分有必要在Fragment中定义的，比如是否全屏，是否显示状态栏等。因为这些Fragment都从属于一个Activity，页面切换时必须把样式设置为当前Fragment的默认样式
+
+一些页面的默认外观属性是十分有必要在Fragment中定义的，比如是否全屏，是否显示状态栏等。
+
+因为这些Fragment都从属于一个Activity，页面切换时必须把样式设置为当前Fragment的默认样式
 
 | 注解                | 功能                 | 备注                                                                            |
 |--------------------|----------------------|-------------------------------------------------------------------------------|
