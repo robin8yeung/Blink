@@ -8,6 +8,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
+import android.util.Log
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultCallback
 import androidx.core.app.ActivityOptionsCompat
@@ -41,6 +42,7 @@ object Blink {
      * 如果有依赖startup框架，会自动初始化。否则可以调用此方法初始化
      */
     fun init(context: Context) {
+        Log.e("blink", "startup")
         this.context = context.applicationContext
     }
 

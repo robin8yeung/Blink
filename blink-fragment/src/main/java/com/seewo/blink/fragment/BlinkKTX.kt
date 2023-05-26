@@ -2,6 +2,7 @@ package com.seewo.blink.fragment
 
 import android.net.Uri
 import android.os.Bundle
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.seewo.blink.fragment.container.BlinkContainerFragment
 import com.seewo.blink.fragment.interceptor.Interceptor
@@ -116,7 +117,12 @@ inline fun <reified T> Uri.enumParams(name: String): Lazy<T?> = lazy {
     } else null
 }
 
-val Fragment.uri: Lazy<String?>
+val Fragment.uriNonNull: Lazy<Uri>
     get()  = lazy {
-        arguments?.getString(RouteMap.KEY_URI)
+        arguments!!.getString(RouteMap.KEY_URI)!!.toUri()
+    }
+
+val Fragment.uriOrNull: Lazy<Uri?>
+    get()  = lazy {
+        arguments?.getString(RouteMap.KEY_URI)?.runCatching { toUri() }?.getOrNull()
     }

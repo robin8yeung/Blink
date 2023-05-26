@@ -9,8 +9,8 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import com.seewo.blink.fragment.Blink
+import com.seewo.blink.fragment.FragmentNotFoundException
 import com.seewo.blink.fragment.R
-import com.seewo.blink.fragment.RouteMap
 import com.seewo.blink.fragment.annotation.CustomAnimations
 import com.seewo.blink.fragment.annotation.KeepAlive
 import com.seewo.blink.fragment.annotation.Orientation
@@ -113,13 +113,7 @@ internal class BlinkContainerFragment : Fragment() {
     }
 
     private fun Fragment.checkException() {
-        if (this is NullFragment) throw RuntimeException(
-            "Cannot find fragment with uri: ${
-                this.arguments?.getString(
-                    RouteMap.KEY_URI
-                )
-            }"
-        )
+        if (this is NullFragment) throw FragmentNotFoundException(this)
     }
 
     override fun onHiddenChanged(hidden: Boolean) {

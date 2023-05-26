@@ -19,6 +19,12 @@
 
 ## 使用示例
 
+#### 依赖引入
+
+blink-utils不需要单独引入，blink-activity和blink-fragment都包含了相关依赖
+
+#### 实际使用
+
 ```kotlin
 val uri = "scheme://my.app.com/index?id=seewo"
 val result = uri.buildUri {

@@ -49,4 +49,202 @@ Blink-fragment主要用于实现单Activity应用的路由框架
 
 ## 接入指南
 
-[未完待续]
+### 1、依赖引入
+
+```groovy
+implementation "com.seewo.library:blink-fragment:$version"
+```
+
+### 2、为页面定义路由uri
+
+#### uri
+
+通过BlinkUri注解来定义页面路由uri。路由uri作为路由地址用于映射页面，发起路由时会从路由表中。
+注意：路由表必须完成注入才能正常使用，关于路由表注入请先了解 [blink-annotation](../blink-annotation/README.md)
+
+```kotlin
+object Uris {
+    const val fragment = "blink://my.app/fragment"
+    const val HOME = "blink://my.app/home"
+}
+
+// 为MyFragment定义单个路由uri
+@BlinkUri(Uris.fragment)
+class MyFragment: Fragment() {
+    // ....
+}
+
+// 为MyFragment定义多个路由uri
+@BlinkUri(value = [ Uris.fragment, Uris.HOME ])
+class MyFragment: Fragment() {
+    // ....
+}
+```
+
+### 3、路由与传参
+
+对于路由跳转，使用 Fragment.blink() 扩展函数或 blinkFragment() 顶级函数
+
+> 如果需要对Uri进行复杂的参数设置，可以借助Uri.build()、String.buildUri()等扩展方法，
+> 详见 [blink-utils](../blink-utils/README.md)
+
+#### 异常处理
+
+kotlin中推荐使用Fragment扩展函数来调用，对于扩展函数的相关方法的返回为Result<Unit>，可以从中获取路由结果。路由失败的原因主要有：
+
+- FragmentNotFoundException 无法找到uri对应的Fragment
+- 自定义异常 被路由拦截，推荐在拦截器抛InterruptedException或其子类来进行路由拦截
+
+
+```kotlin
+blink("blink://navigator/example?name=Blink")
+```
+
+### 4、参数获取
+
+kotlin中实现参数获取
+
+```kotlin
+
+import android.net.Uri
+
+class ExampleFragment : Fragment() {
+  private val uri: Uri by uriNonNull
+
+  // 业务自行处理Name参数传入
+  private val name: String? by lazy { uri?.getQueryParameter("name") }
+
+  // 由Blink提供懒加载函数进行参数注入，默认值可选。仅用于Activity
+  private val age: Int by uri.intParams("age", 18)
+}
+```
+
+### 5、增删拦截器
+
+```kotlin
+// 这里仅用于举例，真实使用时，建议拦截器职责单一
+class LoggerInterceptor : Interceptor {
+  override fun process(from: Fragment?, to: Fragment) = to.apply {
+    // 打印路由信息
+    Log.i("blink", "[from] $from [to] $to [args] ${to.arguments}")
+    // 获取路由请求的参数，修改path并增加参数
+    val uri = to.arguments?.getString(RouteMap.KEY_URI)
+    to.arguments = uri?.buildUri {
+      path("/another")
+      append("new", true)
+    }
+    // 对于缺少权限的情况，拦截跳转
+    if (!Permission.hasCameraPermission) {
+        interrupt("缺少必要权限")
+    }
+  }
+}
+
+val loggerInterceptor = LoggerInterceptor()
+
+// 添加拦截器
+loggerInterceptor.attach()
+// 移除拦截器
+loggerInterceptor.detach()
+```
+
+### 6、结果回调
+
+```kotlin
+import android.app.Activity
+import android.os.Bundle
+
+class PrevFragment : Fragment() {
+
+  override fun onActivityCreated(savedInstanceState: Bundle?) {
+    super.onActivityCreated(savedInstanceState)
+    findViewById<View>(R.id.button).setOnClickListener {
+      // 跳转至EXAMPLE_2
+      blink(Uris.EXAMPLE_2) {
+        // 结果返回回调
+        if (it != null) {
+          Toast.makeText(this, "Return result: $it", Toast.LENGTH_LONG).show()
+        } else {
+          Toast.makeText(this, "Return result: Cancel", Toast.LENGTH_LONG).show()
+        }
+      }.exceptionOrNull()?.let {
+        // 路由如果存在异常
+        Log.e("BLINK", it.message, it)
+        Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+      }
+    }
+  }
+}
+
+class NextFragment : Fragment() {
+  private val uri: Uri by uriNonNull
+  private val name: String? by uri.stringParams("name")
+
+  override fun onActivityCreated(savedInstanceState: Bundle?) {
+    super.onActivityCreated(savedInstanceState)
+    findViewById<View>(R.id.button).setOnClickListener {
+      // 点击按钮，返回结果
+      pop(Bundle().apply {
+            putInt("result", 1)
+      })
+    }
+    findViewById<View>(R.id.back).setOnClickListener {
+      // 点击返回，直接返回
+      pop()
+    }
+  }
+}
+```
+## 特别关注
+
+出于简化使用考虑，整个路由的过程，包括拦截器的处理过程，均是同步调用的，那么当你使用拦截器，需要关注以下一些点：
+
+- 对于专用拦截器，设置合理的过滤条件，仅对于需要拦截的跳转生效
+- 拦截器中避免做耗时操作
+- 拦截器中需要做异步拦截后跳转（如弹窗等待用户点击后再跳转），可以先拦截此次跳转并弹窗，在弹窗点击后再执行一次新的路由。
+  - 对于这种情况，要小心新的路由可能仍然被当前拦截器拦截，造成死循环，所以如有必要，对Intent增加必要参数，避免被二次拦截，Blink提供了绿色通道来解决这个问题。
+
+```kotlin
+class PluginInterceptor : Interceptor {
+    private val caredPath = Uris.PLUGIN.toUri().path
+  
+  // 仅对plugin的path生效
+    override fun filter(intent: Intent) =
+        intent.data?.path == caredPath
+
+    // 设置拦截器优先级
+    override fun priority() = -2
+
+    override fun process(from: Fragment?, to: Fragment): Fragment? {
+        val activity = from?.requireActivity()
+        when {
+            Build.VERSION.SDK_INT < 29 -> {
+                // 可以抛不同的异常，来在路由调用端针对不同的异常进行提示。此处举例不涉及
+                interrupt("系统版本过低")
+            }
+            !PluginConfig.isPluginEnable -> {
+                interrupt("用户无权限")
+            }
+            else -> {
+                activity?.let {
+                    // 弹窗并加载插件
+                    Dialog.loadPluginWithDialog(
+                        activity, ResourceTag.plugin
+                    ) { exception ->
+                        if (exception != null) {
+                            // 加载异常，不执行路由
+                            FLog.e(exception)
+                        } else {
+                            // 加载完成，执行路由。为避免再次被此拦截器拦截，添加绿色通道属性
+                            from?.blink(putInGreenChannel(to))
+                        }
+                    }
+                }
+                // 需要弹窗确认，加载plugin，直接拦截同步路由跳转
+                interrupt("需要下载插件")
+            }
+        }
+    }
+}
+```
+

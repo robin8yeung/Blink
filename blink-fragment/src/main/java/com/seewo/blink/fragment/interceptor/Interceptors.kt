@@ -32,8 +32,8 @@ internal class Interceptors {
         arguments?.getSerializable(GREEN_CHANNEL) == interceptor::class.java
 }
 
-fun Fragment.greenChannel(interceptor: Interceptor) {
-    arguments = (arguments ?: Bundle()).apply {
-        putSerializable(GREEN_CHANNEL, interceptor::class.java)
+fun Interceptor.putInGreenChannel(fragment: Fragment) {
+    fragment.arguments = (fragment.arguments ?: Bundle()).apply {
+        putSerializable(GREEN_CHANNEL, this@putInGreenChannel::class.java)
     }
 }

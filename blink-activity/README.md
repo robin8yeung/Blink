@@ -18,50 +18,50 @@
 - Blink
     - 功能仅包含Activity路由和全局拦截器，拦截器支持动态增删，但包含了页面结果回调。
     - 对于依赖注入的场景建议引入专门的依赖注入框架，如koin等
-    - 路由声明在AndroidManifest，不使用apt，避免编译时开销，但样板代码较多
+    - 使用ksp处理注解，不引入gradle plugin，避免造成过多编译时开销
 
-## 使用示例
+## 接入指南
 
-### 1、AndroidManifest.xml中定义路由uri
+### 1、依赖引入
+
+```groovy
+implementation "com.seewo.library:blink-activity:$version"
+```
+
+### 2、为页面定义路由uri
 
 #### uri
 
-uri主要定义在 intent-filter中的data标签中，如果scheme和host相对固定，可以定义在strings.xml中方便统一管理
-如 scheme为blink host为navigation，path为/example，则整个导航到ExampleActivity的Uri为 blink://navigation/example
+通过BlinkUri注解来定义页面路由uri。路由uri作为路由地址用于映射页面，发起路由时会从路由表中。
+注意：路由表必须完成注入才能正常使用，关于路由表注入请先了解 [blink-annotation](../blink-annotation/README.md)
 
-#### action
+```kotlin
+object Uris {
+    const val activity = "blink://my.app/activity"
+    const val HOME = "blink://my.app/home"
+}
 
-action "blink.action.VIEW"为Blink的默认路由Action，也可以自定义(设置在Blink.action字段中)
+// 为MyActivity定义单个路由uri
+@BlinkUri(Uris.activity)
+class MyActivity: Activity() {
+    // ....
+}
 
-#### category
-
-category需要设置为android.intent.category.DEFAULT
-
-#### exported
-
-出于合规和安全考虑，如非必要，请把activity标签的exported设置为false
-
-```xml
-<!--AndroidManifest.xml中的路由定义-->
-<application>
-    <activity android:name=".ExampleActivity" android:exported="false">
-        <intent-filter>
-            <action android:name="blink.action.VIEW" />
-            <category android:name="android.intent.category.DEFAULT" />
-            <data android:scheme="@string/scheme" android:host="@string/host"
-                android:path="/example" />
-        </intent-filter>
-    </activity>
-</application>
+// 为MyActivity定义多个路由uri
+@BlinkUri(value = [ Uris.activity, Uris.HOME ])
+class MyActivity: Activity() {
+    // ....
+}
 ```
 
-### 2、路由与传参
+### 3、路由与传参
 
 对于路由跳转，kotlin建议使用Context.blink扩展函数，java则使用Blink.navigation的静态方法
 
-> 如果需要对Uri进行复杂的参数设置，可以借助Uri.Builder类
+> 如果需要对Uri进行复杂的参数设置，可以借助Uri.build()、String.buildUri()等扩展方法，
+> 详见 [blink-utils](../blink-utils/README.md)
 
-#### 函数返回
+#### 异常处理
 
 kotlin中推荐使用扩展函数来调用，对于扩展函数的相关方法的返回为Result<Unit>，可以从中获取路由结果。路由失败的原因主要有：
 
@@ -70,7 +70,7 @@ kotlin中推荐使用扩展函数来调用，对于扩展函数的相关方法�
 
 kotlin中使用
 ```kotlin
-context.blink(Uri.parse("blink://navigator/example?name=Blink"))
+context.blink("blink://navigator/example?name=Blink")
 ```
 
 对于java中使用，提供了Blink为入口的静态方法。但需要注意的是，因为java不支持Result，所以对于Blink的静态方法，异常会直接抛出，如有需要，请务必在java业务端做try-catch
@@ -80,16 +80,16 @@ java中使用
 Blink.navigation(context, Uri.parse("blink://navigation/example?name=Hello"));
 ```
 
-### 3、参数注入
+### 4、参数获取
 
-kotlin中实现参数
+kotlin中实现参数获取
 
 ```kotlin
 import android.app.Activity
 
 class ExampleActivity : Activity() {
     // 业务自行处理Name参数传入
-    private val name: String? by lazy { intent.data?.getQueryParameter() }
+    private val name: String? by lazy { intent.data?.getQueryParameter("name") }
     // 由Blink提供懒加载函数进行参数注入，默认值可选。仅用于Activity
     private val age: Int by intParams("age", 18)
 }
@@ -97,7 +97,7 @@ class ExampleActivity : Activity() {
 
 java中实现参数注入推荐使用BlinkParams注解配合Blink.inject()方法。
 
-特别注意：注意这个方法对于Activity和Fragment具有不同的实现
+特别注意：注意这个方法对于Activity和Fragment具有不同的实现。Fragment仅用于ARouter老项目迁移，不推荐使用。
 
 - 对于Activity的注入，主要从intent.data，即uri中去获取传入的参数，支持的类型较少
 - 对于Fragment的注入，主要从arguments，即Bundle中去获取传入的参数，支持的类型较多（但也不是支持Bundle的全部类型，详见源码）
@@ -143,14 +143,26 @@ public class ExampleFragment extends Fragment {
 }
 ```
 
-### 4、增删拦截器
+### 5、增删拦截器
 
 kotlin中使用
 
 ```kotlin
+// 这里仅用于举例，真实使用时，建议拦截器职责单一
 class LoggerInterceptor : Interceptor {
     override fun process(context: Context, intent: Intent) {
+        // 打印路由信息
         FLog.a("from $context to $intent data: ${intent.dataString}")
+        // 获取路由请求的参数，修改path并增加参数
+        val uri = intent.data
+        intent.data = uri?.build {
+          path("/another")
+          append("new", true)
+        }
+        // 对于缺少权限的情况，拦截跳转
+        if (!Permission.hasCameraPermission) {
+          interrupt("缺少必要权限")
+        }
     }
 }
 
@@ -172,7 +184,7 @@ Blink.add(loggerInterceptor);
 Blink.remove(loggerInterceptor);
 ```
 
-### 4、结果回调
+### 6、结果回调
 
 ```kotlin
 import android.app.Activity
@@ -218,9 +230,53 @@ class NextActivity : Activity() {
 ```
 ## 特别关注
 
-处于简化使用考虑，整个路由的过程，包括拦截器是同步调用的，那么当你使用拦截器，需要关注以下一些点：
+出于简化使用考虑，整个路由的过程，包括拦截器的处理过程，均是同步调用的，那么当你使用拦截器，需要关注以下一些点：
 
-- 对于专用拦截器，设置合理的过滤条件，进对于需要拦截的跳转生效
+- 对于专用拦截器，设置合理的过滤条件，仅对于需要拦截的跳转生效
 - 拦截器中避免做耗时操作
 - 拦截器中需要做异步拦截后跳转（如弹窗等待用户点击后再跳转），可以先拦截此次跳转并弹窗，在弹窗点击后再执行一次新的路由。
-    - 对于这种情况，要小心新的路由可能仍然被当前拦截器拦截，造成死循环，所以如有必要，对Intent增加必要参数，避免被二次拦截。
+    - 对于这种情况，要小心新的路由可能仍然被当前拦截器拦截，造成死循环，所以如有必要，对Intent增加必要参数，避免被二次拦截，Blink提供了绿色通道来解决这个问题。
+
+```kotlin
+class PluginInterceptor : Interceptor {
+    private val caredPath = Uris.PLUGIN.toUri().path
+  
+  // 仅对plugin的path生效
+    override fun filter(intent: Intent) =
+        intent.data?.path == caredPath
+
+    // 设置拦截器优先级
+    override fun priority() = -2
+
+    override fun process(context: Context, intent: Intent) {
+        val activity = context as? Activity
+        when {
+            Build.VERSION.SDK_INT < 29 -> {
+                // 可以抛不同的异常，来在路由调用端针对不同的异常进行提示。此处举例不涉及
+                interrupt("系统版本过低")
+            }
+            !PluginConfig.isPluginEnable -> {
+                interrupt("用户无权限")
+            }
+            else -> {
+                activity?.let {
+                    // 弹窗并加载插件
+                    Dialog.loadPluginWithDialog(
+                        activity, ResourceTag.plugin
+                    ) { exception ->
+                        if (exception != null) {
+                            // 加载异常，不执行路由
+                            FLog.e(exception)
+                        } else {
+                            // 加载完成，执行路由。为避免再次被此拦截器拦截，添加绿色通道属性
+                            activity.blink(putInGreenChannel(intent))
+                        }
+                    }
+                }
+                // 需要弹窗确认，加载plugin，直接拦截同步路由跳转
+                interrupt("需要下载插件")
+            }
+        }
+    }
+}
+```
