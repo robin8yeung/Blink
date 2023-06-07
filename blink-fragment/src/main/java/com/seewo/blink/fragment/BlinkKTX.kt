@@ -9,6 +9,8 @@ import com.seewo.blink.fragment.interceptor.Interceptor
 import com.seewo.blink.fragment.interceptor.InterruptedException
 
 /**
+ * 导航到指定Fragment
+ *
  * @param uri 字符串类型的Uri
  * @param onResult 返回回调。
  *
@@ -19,9 +21,11 @@ import com.seewo.blink.fragment.interceptor.InterruptedException
 fun Fragment.blink(
     uri: String,
     onResult: ((Bundle?) -> Unit)? = null
-): Result<Unit> = runCatching { Blink.navigation(uri, this@blink, onResult) }
+): Result<Unit> = blink(uri.toUri(), onResult)
 
 /**
+ * 导航到指定Fragment
+ *
  * @param uri 字符串类型的Uri
  * @param onResult 返回回调。
  *
@@ -32,9 +36,11 @@ fun Fragment.blink(
 fun fragmentBlink(
     uri: String,
     onResult: ((Bundle?) -> Unit)? = null
-): Result<Unit> = runCatching { Blink.navigation(uri, null, onResult) }
+): Result<Unit> = fragmentBlink(uri.toUri(), onResult)
 
 /**
+ * 导航到指定Fragment
+ *
  * @param uri Uri
  * @param onResult 返回回调。
  *
@@ -48,6 +54,8 @@ fun Fragment.blink(
 ): Result<Unit> = runCatching { Blink.navigation(uri, this@blink, onResult) }
 
 /**
+ * 导航到指定Fragment
+ *
  * @param uri Uri
  * @param onResult 返回回调。
  *
@@ -65,6 +73,20 @@ fun fragmentBlink(
  */
 fun Fragment.pop(result: Bundle? = null) {
     (parentFragment as? BlinkContainerFragment)?.popResult(result) ?: parentFragmentManager.popBackStack()
+}
+
+/**
+ * 返回到指定的Fragment（用uri来指定）
+ *
+ * @param uri 回退到的页面对应的uri。如果页面定义了多个uri，回退时只会匹配到实际导航到该页面的uri
+ * @return 是否成功回退
+ *
+ * 特别注意：
+ *          1. 如果回退栈中存在多个uri定义相同的Fragment，那会回退到最近的一个
+ *          2. 需要回退到首个Fragment，即通过 BlinkContainerActivity.startFragment()传入的Fragment，其对应的uri为空字符串
+ */
+fun Fragment.popTo(uri: String): Boolean {
+    return (parentFragment as? BlinkContainerFragment)?.popTo(uri) ?: false
 }
 
 /**

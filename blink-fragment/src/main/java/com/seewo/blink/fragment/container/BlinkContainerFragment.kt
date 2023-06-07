@@ -7,6 +7,7 @@ import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
 import androidx.fragment.app.commit
 import com.seewo.blink.fragment.Blink
 import com.seewo.blink.fragment.R
@@ -51,6 +52,18 @@ internal class BlinkContainerFragment : Fragment() {
     fun popResult(result: Bundle? = null) {
         this.result = result
         parentFragmentManager.popBackStack()
+    }
+
+    fun popTo(uri: String): Boolean {
+        for (i in parentFragmentManager.backStackEntryCount - 1 downTo 0) {
+            val name = parentFragmentManager.getBackStackEntryAt(i).name
+            val tag = FragmentTag(name)
+            if (tag.uri == uri) {
+                parentFragmentManager.popBackStack(name, POP_BACK_STACK_INCLUSIVE)
+                return true
+            }
+        }
+        return false
     }
 
     override fun onAttach(context: Context) {
@@ -100,15 +113,17 @@ internal class BlinkContainerFragment : Fragment() {
             keepAlive = getAnnotation(KeepAlive::class.java)
         }
         if (isAdded) {
-            childFragmentManager.commit {
-                add(R.id.blink_container_fragment_root, fragment)
-            }
+            doAttach(fragment)
         } else {
             pending = Runnable {
-                childFragmentManager.commit {
-                    add(R.id.blink_container_fragment_root, fragment)
-                }
+                doAttach(fragment)
             }
+        }
+    }
+
+    private fun doAttach(fragment: Fragment) {
+        childFragmentManager.commit {
+            add(R.id.blink_container_fragment_root, fragment)
         }
     }
 

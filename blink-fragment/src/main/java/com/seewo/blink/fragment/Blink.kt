@@ -2,7 +2,6 @@ package com.seewo.blink.fragment
 
 import android.net.Uri
 import android.os.Bundle
-import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.seewo.blink.fragment.container.BlinkContainerFragment
 import com.seewo.blink.fragment.interceptor.Interceptor
@@ -30,14 +29,6 @@ object Blink {
     @JvmStatic
     fun remove(interceptor: Interceptor) {
         interceptors.remove(interceptor)
-    }
-
-    fun navigation(
-        uri: String,
-        from: Fragment? = null,
-        onResult: ((Bundle?) -> Unit)? = null
-    ) {
-        navigation(uri.toUri(), from, onResult)
     }
 
     fun navigation(

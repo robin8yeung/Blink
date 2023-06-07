@@ -20,4 +20,4 @@ private val Fragment.who: String?
 
 val Fragment.generateFragmentTag: String
     get() = (this as? BlinkContainerFragment)?.fragmentTag
-        ?: "$mode;${this::class.java.canonicalName};${hashCode()};${who}"
+        ?: "$mode;${this.arguments?.uriOrNull ?: ""};${this::class.java.canonicalName};${hashCode()};${who}"

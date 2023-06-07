@@ -10,11 +10,9 @@ import androidx.fragment.app.commit
 import com.seewo.blink.fragment.Blink
 import com.seewo.blink.fragment.R
 import com.seewo.blink.fragment.generateFragmentTag
-import com.seewo.blink.fragment.mode.LaunchMode
 import com.seewo.blink.fragment.mode.LaunchMode.NORMAL
 import com.seewo.blink.fragment.mode.LaunchMode.SINGLE_TASK
 import com.seewo.blink.fragment.mode.LaunchMode.SINGLE_TOP
-import com.seewo.blink.fragment.mode.LaunchMode.valueOf
 import com.seewo.blink.fragment.mode.ReEnterFragment
 
 abstract class BlinkContainerActivity : FragmentActivity() {
@@ -23,6 +21,7 @@ abstract class BlinkContainerActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.blink_fragment_activity)
         Blink.onNavigation = this::load
+        if (savedInstanceState != null) return
         startFragment()?.let {
             supportFragmentManager.commit {
                 add(R.id.blink_container_activity_root, BlinkContainerFragment().apply {
@@ -52,30 +51,13 @@ abstract class BlinkContainerActivity : FragmentActivity() {
         return null
     }
 
-    private inner class FragmentTag(private val tag: String?) {
-        val launchMode: LaunchMode
-        val className: String?
-        val hashCode: Int
-
-        init {
-            val tags = tag?.split(";")
-            launchMode = kotlin.runCatching {
-                tags?.get(0)?.let { valueOf(it) }
-            }.getOrNull() ?: NORMAL
-            className = kotlin.runCatching { tags?.get(1) }.getOrNull()
-            hashCode = kotlin.runCatching { tags?.get(2) }.getOrNull()?.toIntOrNull() ?: 0
-        }
-
-        override fun toString(): String = tag ?: super.toString()
-    }
-
     private fun load(fragment: Fragment) {
         supportFragmentManager.commit {
             val customAnimation = (fragment as? BlinkContainerFragment)?.customAnimation
             if (customAnimation == null) {
                 setCustomAnimations(
-                    R.anim.fragment_right_in, R.anim.fragment_left_out,
-                    R.anim.fragment_left_in, R.anim.fragment_right_out
+                    R.anim.enter_from_right, R.anim.fade_out,
+                    R.anim.fade_in, R.anim.exit_to_right
                 )
             } else {
                 setCustomAnimations(
@@ -116,9 +98,10 @@ abstract class BlinkContainerActivity : FragmentActivity() {
             (currentFragment as? BlinkContainerFragment)?.fragment ?: currentFragment
         if (currentFragment != null) {
             val lastBackStackEntry =
-                FragmentTag(currentFragment.generateFragmentTag)
-            if (lastBackStackEntry.className == fragment::class.java.canonicalName) {
-                (currentFragment as? BlinkContainerFragment)?.onNewArguments(fragment.arguments)
+                FragmentTag((currentFragment as? BlinkContainerFragment)?.fragmentTag ?: currentFragment.generateFragmentTag)
+            val currentBackStackEntry = FragmentTag((fragment as? BlinkContainerFragment)?.fragmentTag ?: fragment.generateFragmentTag)
+            if (lastBackStackEntry.className == currentBackStackEntry.className) {
+                (this@BlinkContainerActivity.currentFragment as? BlinkContainerFragment)?.onNewArguments(fragment.arguments)
             } else {
                 launchFragment(fragment)
             }
@@ -130,7 +113,7 @@ abstract class BlinkContainerActivity : FragmentActivity() {
     private fun FragmentTransaction.launchFragment(fragment: Fragment) {
         currentFragment?.let {
             val keepAlive = (fragment as? BlinkContainerFragment)?.keepAlive
-            if (keepAlive?.value == false) {
+            if (keepAlive?.value != true) {
                 remove(it)
             } else {
                 hide(it)
@@ -141,7 +124,7 @@ abstract class BlinkContainerActivity : FragmentActivity() {
                 addToBackStack(it.generateFragmentTag)
             }
         }
-        add(R.id.blink_container_activity_root, fragment)
+        add(R.id.blink_container_activity_root, fragment, fragment::class.java.canonicalName)
     }
 
     private val currentFragment: Fragment?

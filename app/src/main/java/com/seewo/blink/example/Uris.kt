@@ -14,4 +14,7 @@ object Uris {
     const val FRAGMENT = "$BASE_URI/fragment"
     const val NEXT_FRAGMENT = "$BASE_URI/next/fragment"
     const val RETURN_RESULT_FRAGMENT = "$BASE_URI/return/result/fragment"
+    const val TEMP_FRAGMENT = "$BASE_URI/temp"
+    const val FINAL_FRAGMENT = "$BASE_URI/final"
+    const val SINGLE_TOP_FRAGMENT = "$BASE_URI/singleTop"
 }

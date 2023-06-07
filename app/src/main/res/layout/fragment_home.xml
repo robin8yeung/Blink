@@ -45,9 +45,32 @@
             <CheckBox
                 android:id="@+id/deny"
                 android:layout_marginStart="16dp"
-                android:text="禁止跳转"
+                android:text="拦截跳转"
                 android:textSize="16dp"
                 android:checked="true"
+                android:textColor="@color/white"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/single_top"
+                android:text="跳转"
+                android:textColor="@color/white"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_marginStart="16dp"
+                android:text="演示SingleTop"
+                android:textSize="16dp"
                 android:textColor="@color/white"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
@@ -70,6 +93,29 @@
             <TextView
                 android:layout_marginStart="16dp"
                 android:text="携带枚举参数 navigator=BLINK"
+                android:textSize="16dp"
+                android:textColor="@color/white"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/go_to_temp"
+                android:text="跳转"
+                android:textColor="@color/white"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_marginStart="16dp"
+                android:text="演示回退到指定uri和自定义动画"
                 android:textSize="16dp"
                 android:textColor="@color/white"
                 android:layout_width="wrap_content"

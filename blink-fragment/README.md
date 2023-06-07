@@ -167,7 +167,43 @@ class NextFragment : Fragment() {
 }
 ```
 
-### 7、LaunchMode
+### 7. 回退到指定页面
+
+blink-fragment也支持回退到指定页面，通过uri来指定要回退到的页面。需要关注几个点：
+
+1. 如果回退栈中存在多个uri定义相同的Fragment，那会回退到最近的一个
+2. 需要回退到首个Fragment，即通过 BlinkContainerActivity.startFragment()传入的Fragment，其对应的uri为空字符串
+3. 通过这种方式返回，无法返回结果，如果需要返回结果，则使用pop(result)方法
+
+```kotlin
+@BlinkUri(Uris.FINAL_FRAGMENT)
+@Orientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+class FinalFragment: Fragment() {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View = FragmentFinalBinding.inflate(inflater, container, false).apply {
+        next.setOnClickListener {
+            // 直接回退到HomeFragment
+            popTo("")
+        }
+    }.root
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        // 拦截返回键，直接回退到HomeFragment
+        requireActivity().onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // 直接回退到HomeFragment
+                popTo("")
+            }
+        })
+    }
+}
+```
+
+### 8、LaunchMode
 
 blink-fragment的LaunchMode类似Activity的LaunchMode。
 
@@ -199,7 +235,7 @@ class MyFragment : SingleTaskFragment() {
 }
 ```
 
-### 6、属性注解
+### 9、属性注解
 
 类似Activity可以在AndroidManifest中定义orientation属性，blink-fragment也支持在Fragment中定义一些属性，同样也是通过注解的方式来定义。
 
@@ -214,7 +250,7 @@ class MyFragment : SingleTaskFragment() {
 | CustomAnimations   | 定义页面切换转场动画     | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/CustomAnimations.kt) |
 | KeepAlive          | 定义页面是否保活        | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/KeepAlive.java)      |
 
-### 7、增删拦截器
+### 10、增删拦截器
 
 ```kotlin
 // 这里仅用于举例，真实使用时，建议拦截器职责单一

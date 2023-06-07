@@ -15,6 +15,7 @@ import com.seewo.blink.example.bean.Navigator
 import com.seewo.blink.example.databinding.FragmentHomeBinding
 import com.seewo.blink.example.fragment.interceptor.ExampleInterceptor
 import com.seewo.blink.example.ktx.toast
+import com.seewo.blink.fragment.annotation.KeepAlive
 import com.seewo.blink.fragment.annotation.Orientation
 import com.seewo.blink.fragment.annotation.SystemUI
 import com.seewo.blink.fragment.attach
@@ -27,10 +28,9 @@ import com.seewo.blink.utils.buildUri
 @BlinkUri(Uris.FRAGMENT)
 @Orientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 @SystemUI(brightnessLight = false)
+@KeepAlive
 class HomeFragment: SingleTaskFragment() {
-    private val interceptor = ExampleInterceptor().apply {
-        attach()
-    }
+    private val interceptor = ExampleInterceptor()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -47,13 +47,12 @@ class HomeFragment: SingleTaskFragment() {
                 Toast.makeText(requireContext(), it.message, Toast.LENGTH_SHORT).show()
             }
         }
+        interceptor.attach()
         deny.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 interceptor.attach()
-                Log.e("BLINK", "attach2")
             } else {
                 interceptor.detach()
-                Log.e("BLINK", "detach")
             }
         }
         nextWithParam.setOnClickListener {
@@ -67,6 +66,12 @@ class HomeFragment: SingleTaskFragment() {
                 }
             }
         }
+        goToTemp.setOnClickListener {
+            blink(Uris.TEMP_FRAGMENT)
+        }
+        singleTop.setOnClickListener {
+            blink(Uris.SINGLE_TOP_FRAGMENT)
+        }
     }.root.apply { setBackgroundResource(R.color.purple_500) }
 
     override fun onNewArguments(arguments: Bundle?) {
@@ -77,6 +82,5 @@ class HomeFragment: SingleTaskFragment() {
     override fun onDestroy() {
         super.onDestroy()
         interceptor.detach()
-        Log.e("BLINK", "detach")
     }
 }

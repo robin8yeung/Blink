@@ -44,4 +44,9 @@ class NextFragment: Fragment() {
             }
         }
     }.root
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        redirectInterceptor.detach()
+    }
 }
