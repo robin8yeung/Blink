@@ -219,7 +219,7 @@ class PrevActivity : Activity() {
                 } else {
                     Toast.makeText(this, "Return result: Cancel", Toast.LENGTH_LONG).show()
                 }
-            }.exceptionOrNull()?.let {
+            }.onFailure {
                 // 路由如果存在异常
                 Log.e("BLINK", it.message, it)
                 Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
