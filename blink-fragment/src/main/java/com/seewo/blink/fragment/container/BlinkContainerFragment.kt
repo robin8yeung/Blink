@@ -2,6 +2,7 @@ package com.seewo.blink.fragment.container
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -41,7 +42,7 @@ internal class BlinkContainerFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = inflater.inflate(R.layout.blink_container_fragment, container, false).apply {
-        setBackgroundColor(windowBackground)
+        setBackgroundColor(kotlin.runCatching { windowBackground }.getOrNull() ?: Color.WHITE)
     }!!
 
     private var pending: Runnable? = null
