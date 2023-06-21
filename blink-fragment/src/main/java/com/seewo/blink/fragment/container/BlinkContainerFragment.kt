@@ -6,7 +6,6 @@ import android.graphics.Color
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
@@ -33,8 +32,7 @@ internal class BlinkContainerFragment : Fragment() {
     lateinit var fragmentTag: String
     private var orientation: Int? = null
     private var systemUISettings: SystemUI = SystemUI()
-    private var backgroundColor: Int = Color.WHITE
-    private var root: View? = null
+    private var backgroundColor: Int? = null
     var customAnimation: CustomAnimations? = null
         private set
 
@@ -46,9 +44,9 @@ internal class BlinkContainerFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = inflater.inflate(R.layout.blink_container_fragment, container, false).apply {
-        backgroundColor = kotlin.runCatching { windowBackground }.getOrNull() ?: Color.WHITE
-        root = this
-        root?.setBackgroundColor(backgroundColor)
+        setBackgroundColor(backgroundColor
+            ?: kotlin.runCatching { windowBackground }.getOrNull()
+            ?: Color.WHITE)
     }!!
 
     private var pending: Runnable? = null
@@ -120,7 +118,6 @@ internal class BlinkContainerFragment : Fragment() {
             customAnimation = getAnnotation(CustomAnimations::class.java)
             keepAlive = getAnnotation(KeepAlive::class.java)
         }
-        root?.setBackgroundColor(backgroundColor)
         if (isAdded) {
             doAttach(fragment)
         } else {
