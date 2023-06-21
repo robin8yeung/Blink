@@ -34,7 +34,7 @@ internal class BlinkContainerFragment : Fragment() {
     private var orientation: Int? = null
     private var systemUISettings: SystemUI = SystemUI()
     private var backgroundColor: Int = Color.WHITE
-    private lateinit var root: View
+    private var root: View? = null
     var customAnimation: CustomAnimations? = null
         private set
 
@@ -48,6 +48,7 @@ internal class BlinkContainerFragment : Fragment() {
     ) = inflater.inflate(R.layout.blink_container_fragment, container, false).apply {
         backgroundColor = kotlin.runCatching { windowBackground }.getOrNull() ?: Color.WHITE
         root = this
+        root?.setBackgroundColor(backgroundColor)
     }!!
 
     private var pending: Runnable? = null
@@ -119,7 +120,7 @@ internal class BlinkContainerFragment : Fragment() {
             customAnimation = getAnnotation(CustomAnimations::class.java)
             keepAlive = getAnnotation(KeepAlive::class.java)
         }
-        root.setBackgroundColor(backgroundColor)
+        root?.setBackgroundColor(backgroundColor)
         if (isAdded) {
             doAttach(fragment)
         } else {
