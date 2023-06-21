@@ -8,12 +8,14 @@ private const val GREEN_CHANNEL = "BLINK#GREEN#CHANNEL"
 internal class Interceptors {
     private val interceptors = mutableListOf<Interceptor>()
 
+    @Synchronized
     fun add(interceptor: Interceptor) {
         if (interceptors.contains(interceptor)) return
         interceptors += interceptor
         interceptors.sortByDescending { it.priority() }
     }
 
+    @Synchronized
     fun remove(interceptor: Interceptor) {
         interceptors.remove(interceptor)
     }
