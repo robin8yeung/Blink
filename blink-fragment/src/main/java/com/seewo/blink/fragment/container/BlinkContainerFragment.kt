@@ -6,12 +6,14 @@ import android.graphics.Color
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
 import androidx.fragment.app.commit
 import com.seewo.blink.fragment.Blink
 import com.seewo.blink.fragment.R
+import com.seewo.blink.fragment.annotation.Background
 import com.seewo.blink.fragment.annotation.CustomAnimations
 import com.seewo.blink.fragment.annotation.KeepAlive
 import com.seewo.blink.fragment.annotation.Orientation
@@ -31,6 +33,8 @@ internal class BlinkContainerFragment : Fragment() {
     lateinit var fragmentTag: String
     private var orientation: Int? = null
     private var systemUISettings: SystemUI = SystemUI()
+    private var backgroundColor: Int = Color.WHITE
+    private lateinit var root: View
     var customAnimation: CustomAnimations? = null
         private set
 
@@ -42,7 +46,8 @@ internal class BlinkContainerFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = inflater.inflate(R.layout.blink_container_fragment, container, false).apply {
-        setBackgroundColor(kotlin.runCatching { windowBackground }.getOrNull() ?: Color.WHITE)
+        backgroundColor = kotlin.runCatching { windowBackground }.getOrNull() ?: Color.WHITE
+        root = this
     }!!
 
     private var pending: Runnable? = null
@@ -110,9 +115,11 @@ internal class BlinkContainerFragment : Fragment() {
                 orientation = it.value
             }
             getAnnotation(SystemUI::class.java)?.let { systemUISettings = it }
+            getAnnotation(Background::class.java)?.let { backgroundColor = it.value }
             customAnimation = getAnnotation(CustomAnimations::class.java)
             keepAlive = getAnnotation(KeepAlive::class.java)
         }
+        root.setBackgroundColor(backgroundColor)
         if (isAdded) {
             doAttach(fragment)
         } else {
