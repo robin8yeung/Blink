@@ -366,7 +366,7 @@ object Blink {
     private fun Uri.floatParams(key: String) = getQueryParameter(key)?.toFloatOrNull()
     private fun Uri.doubleParams(key: String) = getQueryParameter(key)?.toDoubleOrNull()
     private fun Uri.booleanParams(key: String) = getQueryParameter(key)?.toBooleanStrictOrNull()
-        ?: (getQueryParameter(key)?.toIntOrNull() == 1)
+        ?: getQueryParameter(key)?.toIntOrNull()?.let { it == 1 }
 
     @JvmStatic
     fun appendStrings(builder: Uri.Builder, key: String, strings: List<String>?) {
