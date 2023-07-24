@@ -5,12 +5,13 @@ import android.content.Intent
 import android.net.Uri
 import androidx.core.net.toUri
 import com.seewo.blink.utils.baseUri
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 路由表，可手动注册，也可通过ksp动态注册
  */
 object RouteMap {
-    private val routeMetadataMap = mutableMapOf<String, Class<out Activity>>()
+    private val routeMetadataMap = ConcurrentHashMap<String, Class<out Activity>>()
 
     fun register(baseUri: String, activity: Class<out Activity>) {
         val confirmedBaseUri = baseUri.baseUri

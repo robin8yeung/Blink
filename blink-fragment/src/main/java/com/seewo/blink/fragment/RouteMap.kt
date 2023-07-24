@@ -5,13 +5,14 @@ import android.os.Bundle
 import androidx.fragment.app.Fragment
 import com.seewo.blink.fragment.container.NullFragment
 import com.seewo.blink.utils.baseUri
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 路由表，可手动注册，也可通过ksp动态注册
  */
 object RouteMap {
     const val KEY_URI = "uri"
-    private val routeMetadataMap = mutableMapOf<String, Class<out Fragment>>()
+    private val routeMetadataMap = ConcurrentHashMap<String, Class<out Fragment>>()
 
     fun register(baseUri: String, fragment: Class<out Fragment>) {
         val confirmedBaseUri = baseUri.baseUri
