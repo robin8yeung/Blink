@@ -24,6 +24,8 @@ object RouteMap {
             data = uri
         }
     } ?: Intent("action.Blink.ActivityNotFound", uri)
+
+    fun dump(): Map<String, Class<out Activity>> = routeMetadataMap
 }
 
 private val String.baseUri: String
