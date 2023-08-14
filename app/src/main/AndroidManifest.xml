@@ -32,7 +32,7 @@
         </activity>
         <activity android:name="com.seewo.blink.example.fragment.FragmentContainerActivity"
             android:screenOrientation="portrait"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode">
+            android:configChanges="mcc|mnc|navigation|orientation|touchscreen|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode">
             <meta-data
                 android:name="android.notch_support"
                 android:value="true" />
