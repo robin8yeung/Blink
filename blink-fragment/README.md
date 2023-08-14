@@ -54,7 +54,35 @@ Blink-fragment主要用于实现单Activity应用的路由框架
 implementation "com.seewo.library:blink-fragment:$version"
 ```
 
-### 2、为页面定义路由uri
+### 2、定义容器Activity
+
+容器Activity用于承载Fragment，为了使`blink-fragment`框架正常运行，有以下要求：
+
+- 需要继承抽象类`BlinkContainerActivity`
+- 禁止系统设置变化导致Activity重建
+
+```kotlin
+class FragmentContainerActivity: BlinkContainerActivity() {
+    // 首个展示的Fragment，不希望写死也可以返回null，后续通过blink()方法来跳转
+    override fun startFragment() = HomeFragment()
+
+    // 其他业务代码
+}
+```
+
+由于Activity重建会导致一系列问题，不太好解决，如结果返回，状态维护等，所以现阶段禁止Activity重建，请在`AndroidManifest.xml`中对容器Activity的`android:configChanges`进行以下配置：
+
+```xml
+<activity android:name="com.seewo.blink.example.fragment.FragmentContainerActivity"
+    android:screenOrientation="portrait"
+    android:configChanges="mcc|mnc|navigation|orientation|touchscreen|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode">
+    <meta-data
+        android:name="android.notch_support"
+        android:value="true" />
+</activity>
+```
+
+### 3、为页面定义路由uri
 
 #### uri
 
@@ -83,7 +111,7 @@ class MyFragment : Fragment() {
 }
 ```
 
-### 3、异常处理
+### 4、异常处理
 
 kotlin中推荐使用Fragment扩展函数来调用，对于扩展函数的相关方法的返回为Result<Unit>，可以从中获取路由结果。
 
@@ -100,14 +128,14 @@ blink("blink://navigator/example?name=Blink").onFailure {
 }
 ```
 
-### 4、路由传参
+### 5、路由传参
 
 对于路由跳转，使用 Fragment.blink() 扩展函数或 blinkFragment() 顶级函数
 
 > 如果需要对Uri进行复杂的参数设置，可以借助Uri.build()、String.buildUri()等扩展方法，
 > 详见 [blink-utils](../blink-utils/README.md)
 
-### 5、参数获取
+### 6、参数获取
 
 在Fragment中获取路由传进来的参数
 
@@ -122,7 +150,7 @@ class ExampleFragment : Fragment() {
 }
 ```
 
-### 6、结果回调
+### 7、结果回调
 
 ```kotlin
 class PrevFragment : Fragment() {
@@ -167,7 +195,7 @@ class NextFragment : Fragment() {
 }
 ```
 
-### 7. 回退到指定页面
+### 8. 回退到指定页面
 
 blink-fragment也支持回退到指定页面，通过uri来指定要回退到的页面。需要关注几个点：
 
@@ -203,7 +231,7 @@ class FinalFragment: Fragment() {
 }
 ```
 
-### 8、LaunchMode
+### 9、LaunchMode
 
 blink-fragment的LaunchMode类似Activity的LaunchMode。
 
@@ -235,7 +263,7 @@ class MyFragment : SingleTaskFragment() {
 }
 ```
 
-### 9、属性注解
+### 10、属性注解
 
 类似Activity可以在AndroidManifest中定义orientation属性，blink-fragment也支持在Fragment中定义一些属性，同样也是通过注解的方式来定义。
 
@@ -250,7 +278,7 @@ class MyFragment : SingleTaskFragment() {
 | CustomAnimations   | 定义页面切换转场动画     | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/CustomAnimations.kt) |
 | KeepAlive          | 定义页面是否保活        | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/KeepAlive.java)      |
 
-### 10、增删拦截器
+### 11、增删拦截器
 
 ```kotlin
 // 这里仅用于举例，真实使用时，建议拦截器职责单一
