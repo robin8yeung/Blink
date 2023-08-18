@@ -12,9 +12,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.10"
     implementation "com.google.devtools.ksp:symbol-processing-api:1.6.21-1.0.6"
     implementation("com.squareup:kotlinpoet:1.9.0")
-    compileOnly project(":blink-annotation")
-////    implementation "com.github.robin8yeung:Blink:$POM_VERSION_NAME"
-//    implementation "com.seewo.library:blink-annotation:$POM_VERSION_NAME"
+    implementation project(":blink-annotation")
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
