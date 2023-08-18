@@ -6,6 +6,7 @@ plugins {
 if (LOCAL_DEBUG.toBoolean()) {
     apply from: "${project.rootDir}/gradle/local-maven-push.gradle"
 } else {
+    apply from: "${project.rootDir}/gradle/jitpack-push.gradle"
     apply from: "${project.rootDir}/gradle/jfrog-push.gradle"
 }
 
