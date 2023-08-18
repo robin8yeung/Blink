@@ -10,9 +10,9 @@ buildscript {
             return sha.text.trim()
         }
     }
-    dependencies {
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.24.12"
-    }
+//    dependencies {
+//        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.24.12"
+//    }
 }
 
 plugins {
