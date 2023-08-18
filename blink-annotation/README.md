@@ -22,6 +22,8 @@ Blink提供了通过注解来声明页面路由的方式，通过ksp处理注解
 blink-annotation不需要单独引入，blink-activity和blink-fragment都包含了相关依赖
 由于ksp的生效范围是module，所以【每一个】使用过blink-annotation的【module】都需要引入blink-ksp来处理这些注解
 
+- 最新版本：[![](https://jitpack.io/v/robin8yeung/Blink.svg)](https://jitpack.io/#robin8yeung/Blink)
+
 ```groovy
 ksp "com.seewo.library:blink-ksp:$version"
 ```

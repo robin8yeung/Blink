@@ -19,8 +19,8 @@ rootProject.name = "Blink"
 include ':blink-annotation'
 include ':blink-ksp'
 
-//include ':blink-utils'
-//include ':blink-fragment'
-//include ':blink-activity'
+include ':blink-utils'
+include ':blink-fragment'
+include ':blink-activity'
 
-//include ':app'
+include ':app'

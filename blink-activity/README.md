@@ -24,6 +24,8 @@
 
 ### 1、依赖引入
 
+最新版本：[![](https://jitpack.io/v/robin8yeung/Blink.svg)](https://jitpack.io/#robin8yeung/Blink)
+
 ```groovy
 implementation "com.seewo.library:blink-activity:$version"
 ```

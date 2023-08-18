@@ -1,5 +1,6 @@
 # Blink
 
+[![](https://jitpack.io/v/robin8yeung/Blink.svg)](https://jitpack.io/#robin8yeung/Blink)
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](./LICENSE)
 
 Blink的名字取自dota中的"闪烁Blink"技能，敌法师、痛苦女王等英雄通过闪烁技能可以闪现到指定位置。
@@ -7,8 +8,6 @@ Blink的名字取自dota中的"闪烁Blink"技能，敌法师、痛苦女王等�
 ![LOGO](doc/logo.jpeg)
 
 ## 框架说明
-
-#### 当前最新版本: 0.0.20
 
 Blink是一套基于Uri的Activity路由框架，主要用于App内部的跨组件路由。为了方便老项目快速接入，提供了一些Java友好的接口
 
@@ -31,6 +30,25 @@ Blink提供了纯手动创建路由表的接口，但更推荐通过注解和KSP
 Blink基于Uri来实现路由，为了更方便开发者操作Uri，Blink提供了一些好用的扩展方法
 
 > 详见: [blink-utils](./blink-utils/README.md)
+
+## 接入指南
+
+- 设置jitpack仓库地址
+
+```groovy
+allprojects {
+	repositories {
+		// ...
+		maven { url 'https://jitpack.io' }
+	}
+}
+```
+
+- 添加依赖
+
+```groovy
+implementation "com.seewo.library:$module:$version"
+```
 
 ## License
 
