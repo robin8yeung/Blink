@@ -16,8 +16,11 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Blink"
 include ':app'
-include ':blink-activity'
-include ':blink-utils'
-include ':blink-fragment'
+
+
 include ':blink-ksp'
 include ':blink-annotation'
+
+//include ':blink-utils'
+//include ':blink-fragment'
+//include ':blink-activity'
