@@ -4,7 +4,7 @@ Blink-fragment主要用于实现单Activity应用的路由框架
 
 ## 单Activity应用
 
-整个应用内基本只基于一个Activity实现，用Fragment代替之前的Activity来作为页面载体，主要有以下一些优点：
+整个应用或每个业务内基本只基于一个Activity实现，用Fragment代替之前的Activity来作为页面载体，主要有以下一些优点：
 
 - Dialog依赖于Activity，多Activity应用中无法实现真正的全局弹窗，而单Activity可以
 - 浮动窗口权限需要申请，而单Activity应用可以不需要申请浮动窗口权限也可实现应用内的浮动窗口（仅能展示在应用内）
@@ -29,7 +29,7 @@ Blink-fragment主要用于实现单Activity应用的路由框架
 - 基于回调的结果返回
 - 带优先级的动态拦截器
 - LaunchMode设置：支持standard，singleTop，singleTask 3种。singleInstance建议新开一个Activity
-- 默认属性静态设置：屏幕方向、自定义转场动画、SystemUI（状态栏、导航栏）。需要动态改变这些属性的，请不要进行静态设置，否则页面切换时会回到静态设置的表现
+- 默认属性静态设置：屏幕方向、自定义转场动画、SystemUI（状态栏、导航栏）、页面背景颜色。需要动态改变这些属性的，请不要进行静态设置，否则页面切换时会维持静态设置的表现
 - 可设置页面不在栈顶时是否保活（返回到非保活页面，页面将会重建）
 
 ## 解决一些第三方路由痛点
@@ -40,11 +40,13 @@ Blink-fragment主要用于实现单Activity应用的路由框架
     - 路由图基于xml实现，使用较为繁琐
     - 栈内fragment会销毁重建，无法保持状态
     - 没有LaunchMode的概念，需要自己实现
+    - 没有简单的api来返回结果给上一个页面
 
 - Blink
-    - 路由图通过ksp注解实现，接入方便
+    - 路由表通过ksp注解实现，接入方便
     - 栈内fragment是否保持状态可以通过注解定义
-    - 可通过注解快速定义LaunchMode
+    - 可通过继承快速定义LaunchMode
+    - 可以返回结果给上一个页面
 
 ## 接入指南
 
@@ -189,7 +191,7 @@ class NextFragment : Fragment() {
                 putInt("result", 1)
             })
         }
-        findViewById<View>(R.id.back).setOnClickListener {
+        findViewById<View>(R.id.cancel).setOnClickListener {
             // 点击返回，直接返回
             pop()
         }
@@ -273,12 +275,13 @@ class MyFragment : SingleTaskFragment() {
 
 因为这些Fragment都从属于一个Activity，页面切换时必须把样式设置为当前Fragment的默认样式
 
-| 注解                | 功能                 | 备注                                                                            |
-|--------------------|----------------------|-------------------------------------------------------------------------------|
-| Orientation        | 定义页面默认屏幕方向     | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/Orientation.java)    |
-| SystemUI           | 定义页面样式            | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/SystemUI.kt)         |
-| CustomAnimations   | 定义页面切换转场动画     | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/CustomAnimations.kt) |
-| KeepAlive          | 定义页面是否保活        | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/KeepAlive.java)      |
+| 注解                | 功能           | 备注                                                                            |
+|--------------------|--------------|-------------------------------------------------------------------------------|
+| Orientation        | 定义页面默认屏幕方向   | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/Orientation.java)    |
+| SystemUI           | 定义页面样式       | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/SystemUI.kt)         |
+| CustomAnimations   | 定义页面切换转场动画   | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/CustomAnimations.kt) |
+| KeepAlive          | 定义页面是否保活     | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/KeepAlive.java)      |
+| Background         | 页面背景颜色，默认白色  | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/Background.java)      |
 
 ### 11、增删拦截器
 

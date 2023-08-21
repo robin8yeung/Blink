@@ -17,9 +17,9 @@ Blink还包含一套基于Uri的Fragment路由框架，主要用于实现【单A
 
 > 详见：[blink-fragment](./blink-fragment/README.md)
 
-以上提及的两套框架可以单独使用，也可以同时使用。
+以上提及的两套框架可以单独使用，也可以同时使用
 
-#### 但需知这两套框架属于不同框架，却有许多概念是同名的，所以在同时使用时请注意区分包名
+**但需知这两套框架属于不同框架，却有许多概念是同名的，所以在同时使用时请注意区分包名**
 
 ## 特别说明
 
@@ -46,8 +46,10 @@ allprojects {
 
 - 添加依赖
 
+[![](https://jitpack.io/v/robin8yeung/Blink.svg)](https://jitpack.io/#robin8yeung/Blink)
+
 ```groovy
-implementation "com.seewo.library:$module:$version"
+implementation "com.github.robin8yeung.Blink:$module:$version"
 ```
 
 ## License
