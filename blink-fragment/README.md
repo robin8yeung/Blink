@@ -281,7 +281,7 @@ class MyFragment : SingleTaskFragment() {
 | SystemUI           | 定义页面样式       | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/SystemUI.kt)         |
 | CustomAnimations   | 定义页面切换转场动画   | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/CustomAnimations.kt) |
 | KeepAlive          | 定义页面是否保活     | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/KeepAlive.java)      |
-| Background         | 页面背景颜色，默认白色  | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/Background.java)      |
+| Background         | 页面背景颜色 | [详见备注](src/main/java/com/seewo/blink/fragment/annotation/Background.java)      |
 
 ### 11、增删拦截器
 
