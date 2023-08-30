@@ -151,7 +151,7 @@ class ExampleFragment : Fragment() {
     // 业务自行处理Name参数传入
     private val name: String? by lazy { arguments?.uriOrNull?.getQueryParameter("name") }
 
-    // 由Blink提供懒加载函数进行参数注入，默认值可选。仅用于Activity
+    // 由Blink提供懒加载函数进行参数注入，默认值可选。
     private val age: Int by intParams("age", 18)
 }
 ```
