@@ -25,7 +25,7 @@ blink-annotation不需要单独引入，blink-activity和blink-fragment都包含
 - 最新版本：[![](https://jitpack.io/v/robin8yeung/Blink.svg)](https://jitpack.io/#robin8yeung/Blink)
 
 ```groovy
-ksp "com.seewo.library:blink-ksp:$version"
+ksp "com.github.robin8yeung.Blink:blink-ksp:$version"
 ```
 
 #### 实际使用
