@@ -291,11 +291,11 @@ class MyFragment : SingleTaskFragment() {
 // 这里仅用于举例，真实使用时，建议拦截器职责单一
 class LoggerInterceptor : Interceptor {
     override fun process(from: Fragment?, target: Bundle) {
-        // 打印路由信息
-        Log.i("blink", "[from] $from [target] ${target.uriOrNull}")
-        // 获取路由请求的参数，修改path并增加参数
         val uri = target.uriOrNull
-        target.setUri(target.uriOrNull?.build {
+        // 打印路由信息
+        Log.i("blink", "[from] $from [target] $uri")
+        // 获取路由请求的参数，修改path并增加参数
+        target.setUri(uri?.build {
             path("/another")
             append("new", true)
         })
