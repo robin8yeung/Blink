@@ -55,7 +55,9 @@ Blink-fragment主要用于实现单Activity应用的路由框架
 最新版本：[![](https://jitpack.io/v/robin8yeung/Blink.svg)](https://jitpack.io/#robin8yeung/Blink)
 
 ```groovy
-implementation "com.seewo.library:blink-fragment:$version"
+implementation "com.github.robin8yeung.Blink:blink-fragment:$version"
+implementation "com.github.robin8yeung.Blink:blink-utils:$version"
+ksp "com.github.robin8yeung.Blink:blink-ksp:$version"
 ```
 
 ### 2、定义容器Activity

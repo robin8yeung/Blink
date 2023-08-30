@@ -36,11 +36,19 @@ Blink基于Uri来实现路由，为了更方便开发者操作Uri，Blink提供�
 - 设置jitpack仓库地址
 
 ```groovy
+// 工程的build.gradle或settings.gradle配置jitpack maven仓库地址
 allprojects {
 	repositories {
 		// ...
 		maven { url 'https://jitpack.io' }
 	}
+}
+```
+```groovy
+// 工程的build.gradle配置ksp插件和版本
+plugins {
+    // 配置使用ksp插件，插件版本参考项目使用的kotlin版本和相关文档
+    id 'com.google.devtools.ksp' version 'your ksp version' apply false
 }
 ```
 
@@ -49,7 +57,14 @@ allprojects {
 [![](https://jitpack.io/v/robin8yeung/Blink.svg)](https://jitpack.io/#robin8yeung/Blink)
 
 ```groovy
+// 应用build.gradle引入ksp和blink依赖
+plugins {
+    // 引用ksp
+    id 'com.google.devtools.ksp'
+}
+
 implementation "com.github.robin8yeung.Blink:$module:$version"
+ksp "com.github.robin8yeung.Blink:blink-ksp:$version"
 ```
 
 ## License
