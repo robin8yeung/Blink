@@ -8,7 +8,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
-import android.util.Log
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultCallback
 import androidx.core.app.ActivityOptionsCompat
@@ -176,9 +175,7 @@ object Blink {
         options: ActivityOptionsCompat? = null,
         onResult: ActivityResultCallback<ActivityResult>? = null
     ) {
-        Log.println(Log.ASSERT, "robin", "A")
         runBlocking {
-            Log.println(Log.ASSERT, "robin", "B")
             doNavigation(context, intent, options, onResult)
         }
     }
