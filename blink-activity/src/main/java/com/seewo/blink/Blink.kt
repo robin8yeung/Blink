@@ -20,9 +20,7 @@ import com.seewo.blink.interceptor.Interceptor
 import com.seewo.blink.interceptor.Interceptors
 import com.seewo.blink.stub.ResultHolder
 import com.seewo.blink.utils.append
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import java.io.Serializable
 import java.lang.reflect.ParameterizedType
 
@@ -200,11 +198,9 @@ object Blink {
         options: ActivityOptionsCompat?,
         onResult: ActivityResultCallback<ActivityResult>?
     ) {
-        withContext(Dispatchers.IO) {
-            interceptors.process(context, intent)
-            intent.data?.let {
-                intent.component = RouteMap.get(it).component
-            }
+        interceptors.process(context, intent)
+        intent.data?.let {
+            intent.component = RouteMap.get(it).component
         }
         if (onResult == null) {
             context.startActivity(intent.apply {

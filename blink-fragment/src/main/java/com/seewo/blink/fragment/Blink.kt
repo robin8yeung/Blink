@@ -6,8 +6,6 @@ import androidx.fragment.app.Fragment
 import com.seewo.blink.fragment.container.BlinkContainerFragment
 import com.seewo.blink.fragment.interceptor.BaseInterceptor
 import com.seewo.blink.fragment.interceptor.Interceptors
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.util.UUID
 
 object Blink {
@@ -48,9 +46,7 @@ object Blink {
         val to = Bundle().apply {
             setUri(uri)
         }
-        withContext(Dispatchers.IO) {
-            interceptors.process(this@doNavigation, to)
-        }
+        interceptors.process(this@doNavigation, to)
         onNavigation?.invoke(BlinkContainerFragment().apply {
             attach(RouteMap.get(to.uriNonNull).apply {
                 val requestTag =
