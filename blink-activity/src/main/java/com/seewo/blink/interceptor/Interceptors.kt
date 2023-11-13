@@ -5,26 +5,32 @@ import android.content.Intent
 import com.seewo.blink.Blink
 
 internal class Interceptors {
-    private val interceptors = mutableListOf<Interceptor>()
+    private val interceptors = mutableListOf<BaseInterceptor>()
 
     @Synchronized
-    fun add(interceptor: Interceptor) {
+    fun add(interceptor: BaseInterceptor) {
         if (interceptors.contains(interceptor)) return
         interceptors += interceptor
         interceptors.sortByDescending { it.priority() }
     }
 
     @Synchronized
-    fun remove(interceptor: Interceptor) {
+    fun remove(interceptor: BaseInterceptor) {
         interceptors.remove(interceptor)
     }
 
-    fun process(context: Context, intent: Intent) {
+    suspend fun process(context: Context, intent: Intent) {
         interceptors.filter {
             !intent.isInGreenChannel(it) && it.filter(intent)
-        }.forEach { it.process(context, intent) }
+        }.forEach {
+            if (it is Interceptor) {
+                it.process(context, intent)
+            } else if (it is AsyncInterceptor) {
+                it.process(context, intent)
+            }
+        }
     }
 
-    private fun Intent.isInGreenChannel(interceptor: Interceptor): Boolean =
+    private fun Intent.isInGreenChannel(interceptor: BaseInterceptor): Boolean =
         getSerializableExtra(Blink.GREEN_CHANNEL) == interceptor::class.java
 }

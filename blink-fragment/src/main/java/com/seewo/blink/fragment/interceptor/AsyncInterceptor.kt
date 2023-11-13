@@ -3,8 +3,7 @@ package com.seewo.blink.fragment.interceptor
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 
-@Deprecated("use AsyncInterceptor instead")
-interface Interceptor: BaseInterceptor {
+interface AsyncInterceptor: BaseInterceptor {
 
     /**
      * 拦截器处理函数，如果需要拦截路由，可以抛异常，异常可以自定义
@@ -15,5 +14,5 @@ interface Interceptor: BaseInterceptor {
      * @throws InterruptedException 建议拦截路由抛这个异常
      */
     @kotlin.jvm.Throws(InterruptedException::class)
-    fun process(from: Fragment?, target: Bundle)
+    suspend fun process(from: Fragment?, target: Bundle)
 }

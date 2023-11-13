@@ -9,21 +9,24 @@ import androidx.activity.result.ActivityResultCallback
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import com.seewo.blink.interceptor.BaseInterceptor
 import com.seewo.blink.interceptor.Interceptor
 import com.seewo.blink.interceptor.InterruptedException
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
 
 /**
  * 添加拦截器
  */
-fun Interceptor.attach() {
+fun BaseInterceptor.attach() {
     Blink.add(this)
 }
 
 /**
  * 移除拦截器
  */
-fun Interceptor.detach() {
+fun BaseInterceptor.detach() {
     Blink.remove(this)
 }
 
@@ -46,6 +49,7 @@ fun String.createBlinkIntent() = toUri().createBlinkIntent()
  * - ActivityNotFoundException 无法找到uri对应的Activity
  * - 自定义异常 路由被拦截
  */
+@Deprecated("use Context.blinking() instead")
 fun Context.blink(
     uri: String,
     options: ActivityOptionsCompat? = null,
@@ -61,6 +65,7 @@ fun Context.blink(
  * - ActivityNotFoundException 无法找到uri对应的Activity
  * - 自定义异常 路由被拦截
  */
+@Deprecated("use Context.blinking() instead")
 fun Context.blink(
     uri: Uri,
     options: ActivityOptionsCompat? = null,
@@ -77,6 +82,7 @@ fun Context.blink(
  * - NavigationInterruptedException 路由被拦截
  * @see createBlinkIntent
  */
+@Deprecated("use Context.blinking() instead")
 fun Context.blink(
     intent: Intent,
     options: ActivityOptionsCompat? = null,
@@ -84,7 +90,70 @@ fun Context.blink(
 ): Result<Unit> = kotlin.runCatching { Blink.navigationForResult(this, intent, options, onResult) }
 
 /**
- * 拦截器拦截路由建议抛出以下异常
+ * 异步执行，路由导航
+ * @param uri 字符串类型的Uri
+ * @param options 控制跳转动画
+ * @param onIntercepted 路由被拦截回调。如果回调返回的Throwable为null则表示路由成功执行
+ * @param onResult ActivityResult回调。
+ * 注意：对于Context不是FragmentActivity的情况设置回调，可能会导致共享元素动画异常
+ * @return 执行结果，可能存在以下两种异常
+ * - ActivityNotFoundException 无法找到uri对应的Activity
+ * - 自定义异常 路由被拦截
+ */
+fun Context.blinking(
+    uri: String,
+    options: ActivityOptionsCompat? = null,
+    onIntercepted: ((Throwable?) -> Unit)? = null,
+    onResult: ActivityResultCallback<ActivityResult>? = null
+) = blinking(Uri.parse(uri), options, onIntercepted, onResult)
+
+/**
+ * 异步执行，路由导航
+ * @param uri Uri类型的Uri
+ * @param options 控制跳转动画
+ * @param onIntercepted 路由被拦截回调。如果回调返回的Throwable为null则表示路由成功执行
+ * @param onResult ActivityResult回调。
+ * 注意：对于Context不是FragmentActivity的情况设置回调，可能会导致共享元素动画异常
+ * @return 执行结果，可能存在以下两种异常
+ * - ActivityNotFoundException 无法找到uri对应的Activity
+ * - 自定义异常 路由被拦截
+ */
+fun Context.blinking(
+    uri: Uri,
+    options: ActivityOptionsCompat? = null,
+    onIntercepted: ((Throwable?) -> Unit)? = null,
+    onResult: ActivityResultCallback<ActivityResult>? = null
+) = blinking(Blink.createIntent(uri), options, onIntercepted, onResult)
+
+/**
+ * 异步执行，路由导航
+ * @param intent 建议使用 Uri.createIntent()方法来创建Intent
+ * @param options 控制跳转动画
+ * @param onIntercepted 路由被拦截回调。如果回调返回的Throwable为null则表示路由成功执行
+ * @param onResult ActivityResult回调。
+ * 注意：对于Context不是FragmentActivity的情况设置回调，可能会导致共享元素动画异常
+ * @return 执行结果，可能存在以下两种异常
+ * - ActivityNotFoundException 无法找到uri对应的Activity
+ * - NavigationInterruptedException 路由被拦截
+ * @see createBlinkIntent
+ */
+fun Context.blinking(
+    intent: Intent,
+    options: ActivityOptionsCompat? = null,
+    onIntercepted: ((Throwable?) -> Unit)? = null,
+    onResult: ActivityResultCallback<ActivityResult>? = null
+) {
+    MainScope().launch {
+        kotlin.runCatching {
+            Blink.asyncNavigationForResult(this@blinking, intent, options, onResult)
+        }.apply {
+            onIntercepted?.invoke(exceptionOrNull())
+        }
+    }
+}
+
+/**
+ * 拦截器拦截路由，建议抛出以下异常
  */
 fun Interceptor.interrupt(msg: String? = null) {
     throw InterruptedException(this, msg)
@@ -132,8 +201,13 @@ inline fun <reified T> Activity.enumParams(name: String): Lazy<T?> = lazy {
         val valueInt = value?.toIntOrNull()
         if (valueInt != null) {
             T::class.java.runCatching { enumConstants!![valueInt] }.getOrNull()
-        } else if (value != null){
-            T::class.java.runCatching { getMethod("valueOf", String::class.java).invoke(null, value) }.getOrNull() as T?
+        } else if (value != null) {
+            T::class.java.runCatching {
+                getMethod("valueOf", String::class.java).invoke(
+                    null,
+                    value
+                )
+            }.getOrNull() as T?
         } else null
     } else null
 }
@@ -172,8 +246,13 @@ inline fun <reified T> Fragment.enumParams(name: String): Lazy<T?> = lazy {
         val value = arguments?.getString(name)
         if (valueInt != null) {
             T::class.java.runCatching { enumConstants!![valueInt] }.getOrNull()
-        } else if (value != null){
-            T::class.java.runCatching { getMethod("valueOf", String::class.java).invoke(null, value) }.getOrNull() as T?
+        } else if (value != null) {
+            T::class.java.runCatching {
+                getMethod("valueOf", String::class.java).invoke(
+                    null,
+                    value
+                )
+            }.getOrNull() as T?
         } else null
     } else null
 }

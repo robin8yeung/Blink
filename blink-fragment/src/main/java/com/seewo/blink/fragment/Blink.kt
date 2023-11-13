@@ -6,6 +6,8 @@ import androidx.fragment.app.Fragment
 import com.seewo.blink.fragment.container.BlinkContainerFragment
 import com.seewo.blink.fragment.interceptor.Interceptor
 import com.seewo.blink.fragment.interceptor.Interceptors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.UUID
 
 object Blink {
@@ -31,7 +33,7 @@ object Blink {
         interceptors.remove(interceptor)
     }
 
-    fun navigation(
+    suspend fun navigation(
         uri: Uri,
         from: Fragment? = null,
         onResult: ((Bundle?) -> Unit)? = null
@@ -39,25 +41,27 @@ object Blink {
         from.doNavigation(uri, onResult)
     }
 
-    private fun Fragment?.doNavigation(
+    private suspend fun Fragment?.doNavigation(
         uri: Uri,
         onResult: ((Bundle?) -> Unit)? = null
-    ) {
+    ) = withContext(Dispatchers.IO) {
         val to = Bundle().apply {
             setUri(uri)
         }
         interceptors.process(this@doNavigation, to)
-        onNavigation?.invoke(BlinkContainerFragment().apply {
-            attach(RouteMap.get(to.uriNonNull).apply {
-                val requestTag = this@doNavigation?.generateFragmentTag ?: UUID.randomUUID().toString()
-                onResult?.let {
-                    onResults[requestTag] = onResult
-                }
-                arguments = to.apply {
-                    putString(REQUEST_TAG, requestTag)
-                }
+        withContext(Dispatchers.Main) {
+            onNavigation?.invoke(BlinkContainerFragment().apply {
+                attach(RouteMap.get(to.uriNonNull).apply {
+                    val requestTag = this@doNavigation?.generateFragmentTag ?: UUID.randomUUID().toString()
+                    onResult?.let {
+                        onResults[requestTag] = onResult
+                    }
+                    arguments = to.apply {
+                        putString(REQUEST_TAG, requestTag)
+                    }
+                })
             })
-        })
+        }
     }
 
     fun returnResult(fragment: Fragment, result: Bundle?) {

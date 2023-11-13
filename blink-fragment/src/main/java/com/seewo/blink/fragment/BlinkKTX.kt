@@ -7,6 +7,9 @@ import androidx.fragment.app.Fragment
 import com.seewo.blink.fragment.container.BlinkContainerFragment
 import com.seewo.blink.fragment.interceptor.Interceptor
 import com.seewo.blink.fragment.interceptor.InterruptedException
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 /**
  * 导航到指定Fragment
@@ -48,10 +51,13 @@ fun fragmentBlink(
  * - FragmentNotFoundException 无法找到uri对应的Fragment
  * - 自定义异常 路由被拦截
  */
+@Deprecated("use Fragment.blinking() instead")
 fun Fragment.blink(
     uri: Uri,
     onResult: ((Bundle?) -> Unit)? = null
-): Result<Unit> = runCatching { Blink.navigation(uri, this@blink, onResult) }
+): Result<Unit> = runCatching { runBlocking {
+    Blink.navigation(uri, this@blink, onResult)
+} }
 
 /**
  * 导航到指定Fragment
@@ -63,10 +69,59 @@ fun Fragment.blink(
  * - FragmentNotFoundException 无法找到uri对应的Fragment
  * - 自定义异常 路由被拦截
  */
+@Deprecated("use fragmentBlinking() instead")
 fun fragmentBlink(
     uri: Uri,
     onResult: ((Bundle?) -> Unit)? = null
-): Result<Unit> = runCatching { Blink.navigation(uri, null, onResult) }
+): Result<Unit> = runCatching { runBlocking {
+    Blink.navigation(uri, null, onResult)
+} }
+
+/**
+ * 异步执行，导航到指定Fragment
+ *
+ * @param uri Uri
+ * @param onIntercepted 路由被拦截回调。如果回调返回的Throwable为null则表示路由成功执行
+ * @param onResult 返回回调。
+ *
+ * @return 执行结果，可能存在以下两种异常
+ * - FragmentNotFoundException 无法找到uri对应的Fragment
+ * - 自定义异常 路由被拦截
+ */
+fun Fragment.blinking(
+    uri: Uri,
+    onIntercepted: ((Throwable?) -> Unit)? = null,
+    onResult: ((Bundle?) -> Unit)? = null
+) {
+    MainScope().launch {
+        runCatching { Blink.navigation(uri, this@blinking, onResult) }.apply {
+            onIntercepted?.invoke(exceptionOrNull())
+        }
+    }
+}
+
+/**
+ * 异步执行，导航到指定Fragment
+ *
+ * @param uri Uri
+ * @param onIntercepted 路由被拦截回调。如果回调返回的Throwable为null则表示路由成功执行
+ * @param onResult 返回回调。
+ *
+ * @return 执行结果，可能存在以下两种异常
+ * - FragmentNotFoundException 无法找到uri对应的Fragment
+ * - 自定义异常 路由被拦截
+ */
+fun fragmentBlinking(
+    uri: Uri,
+    onIntercepted: ((Throwable?) -> Unit)? = null,
+    onResult: ((Bundle?) -> Unit)? = null
+) {
+    MainScope().launch {
+        runCatching { Blink.navigation(uri, null, onResult) }.apply {
+            onIntercepted?.invoke(exceptionOrNull())
+        }
+    }
+}
 
 /**
  * 返回，相当于Activity的finish，但可以返回数据给路由发起者

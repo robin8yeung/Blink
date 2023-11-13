@@ -14,10 +14,14 @@ import androidx.core.app.ActivityOptionsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.seewo.blink.callback.UriBuilder
+import com.seewo.blink.interceptor.BaseInterceptor
 import com.seewo.blink.interceptor.Interceptor
 import com.seewo.blink.interceptor.Interceptors
 import com.seewo.blink.stub.ResultHolder
 import com.seewo.blink.utils.append
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.Serializable
 import java.lang.reflect.ParameterizedType
 
@@ -54,7 +58,7 @@ object Blink {
      * 添加拦截器
      */
     @JvmStatic
-    fun add(interceptor: Interceptor) {
+    fun add(interceptor: BaseInterceptor) {
         interceptors.add(interceptor)
     }
 
@@ -62,7 +66,7 @@ object Blink {
      * 移除拦截器
      */
     @JvmStatic
-    fun remove(interceptor: Interceptor) {
+    fun remove(interceptor: BaseInterceptor) {
         interceptors.remove(interceptor)
     }
 
@@ -173,18 +177,29 @@ object Blink {
         options: ActivityOptionsCompat? = null,
         onResult: ActivityResultCallback<ActivityResult>? = null
     ) {
+        runBlocking { doNavigation(context, intent, options, onResult) }
+    }
+
+    suspend fun asyncNavigationForResult(
+        context: Context,
+        intent: Intent,
+        options: ActivityOptionsCompat? = null,
+        onResult: ActivityResultCallback<ActivityResult>? = null
+    ) {
         doNavigation(context, intent, options, onResult)
     }
 
-    private fun doNavigation(
+    private suspend fun doNavigation(
         context: Context,
         intent: Intent,
         options: ActivityOptionsCompat?,
         onResult: ActivityResultCallback<ActivityResult>?
-    ) {
-        interceptors.process(context, intent)
-        intent.data?.let {
-            intent.component = RouteMap.get(it).component
+    ) = withContext(Dispatchers.Main) {
+        withContext(Dispatchers.IO) {
+            interceptors.process(context, intent)
+            intent.data?.let {
+                intent.component = RouteMap.get(it).component
+            }
         }
 
         if (onResult == null) {
