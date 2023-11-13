@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.seewo.blink.annotation.BlinkUri
 import com.seewo.blink.attach
 import com.seewo.blink.blink
+import com.seewo.blink.blinking
 import com.seewo.blink.detach
 import com.seewo.blink.example.Uris
 import com.seewo.blink.example.activity.interceptor.ExampleInterceptor
@@ -33,6 +34,11 @@ class HomeActivity : AppCompatActivity() {
                 Log.e("BLINK", it.message, it)
                 toast(it.message)
             }
+//            blinking(Uris.NEXT, onIntercepted = {
+//                it ?: return@blinking
+//                Log.e("BLINK", it.message, it)
+//                toast(it.message)
+//            })
         }
         binding.deny.setOnCheckedChangeListener { _, checked ->
             if (checked) {
@@ -43,7 +49,7 @@ class HomeActivity : AppCompatActivity() {
         }
 
         binding.nextWithParam.setOnClickListener {
-            blink(Uris.RETURN_RESULT.buildUri {
+            blinking(Uris.RETURN_RESULT.buildUri {
                 append("navigator", Navigator.BLINK)
             }) {
                 if (it.resultCode == Activity.RESULT_OK) {

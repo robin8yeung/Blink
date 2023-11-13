@@ -11,7 +11,7 @@ import com.seewo.blink.example.Uris
 import com.seewo.blink.example.databinding.FragmentTempBinding
 import com.seewo.blink.example.ktx.toast
 import com.seewo.blink.fragment.annotation.Orientation
-import com.seewo.blink.fragment.blink
+import com.seewo.blink.fragment.blinking
 
 @BlinkUri(Uris.SINGLE_TOP_FRAGMENT)
 @Orientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
@@ -24,7 +24,7 @@ class SingleTopFragment: com.seewo.blink.fragment.mode.SingleTopFragment() {
         text.text = "当前页面为SingleTop页面"
         next.text = "跳转到本页面"
         next.setOnClickListener {
-            blink(Uris.SINGLE_TOP_FRAGMENT)
+            blinking(Uris.SINGLE_TOP_FRAGMENT)
         }
     }.root
 

@@ -19,7 +19,7 @@ import com.seewo.blink.fragment.annotation.KeepAlive
 import com.seewo.blink.fragment.annotation.Orientation
 import com.seewo.blink.fragment.annotation.SystemUI
 import com.seewo.blink.fragment.attach
-import com.seewo.blink.fragment.blink
+import com.seewo.blink.fragment.blinking
 import com.seewo.blink.fragment.detach
 import com.seewo.blink.fragment.mode.SingleTaskFragment
 import com.seewo.blink.utils.append
@@ -42,10 +42,11 @@ class HomeFragment: SingleTaskFragment() {
         false
     ).apply {
         next.setOnClickListener {
-            blink(Uris.NEXT_FRAGMENT).onFailure {
+            blinking(Uris.NEXT_FRAGMENT, onIntercepted = {
+                it ?: return@blinking
                 Log.e("BLINK", it.message, it)
                 Toast.makeText(requireContext(), it.message, Toast.LENGTH_SHORT).show()
-            }
+            })
         }
         interceptor.attach()
         deny.setOnCheckedChangeListener { _, checked ->
@@ -56,7 +57,7 @@ class HomeFragment: SingleTaskFragment() {
             }
         }
         nextWithParam.setOnClickListener {
-            blink(Uris.RETURN_RESULT_FRAGMENT.buildUri {
+            blinking(Uris.RETURN_RESULT_FRAGMENT.buildUri {
                 append("navigator", Navigator.BLINK)
             }) {
                 if (it != null) {
@@ -67,10 +68,10 @@ class HomeFragment: SingleTaskFragment() {
             }
         }
         goToTemp.setOnClickListener {
-            blink(Uris.TEMP_FRAGMENT)
+            blinking(Uris.TEMP_FRAGMENT)
         }
         singleTop.setOnClickListener {
-            blink(Uris.SINGLE_TOP_FRAGMENT)
+            blinking(Uris.SINGLE_TOP_FRAGMENT)
         }
     }.root.apply { setBackgroundResource(R.color.purple_500) }
 

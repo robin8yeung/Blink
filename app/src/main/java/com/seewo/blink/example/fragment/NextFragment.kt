@@ -16,7 +16,7 @@ import com.seewo.blink.fragment.annotation.CustomAnimations
 import com.seewo.blink.fragment.annotation.Orientation
 import com.seewo.blink.fragment.annotation.SystemUI
 import com.seewo.blink.fragment.attach
-import com.seewo.blink.fragment.blink
+import com.seewo.blink.fragment.blinking
 import com.seewo.blink.fragment.detach
 
 @BlinkUri(Uris.NEXT_FRAGMENT)
@@ -31,10 +31,11 @@ class NextFragment: Fragment() {
         savedInstanceState: Bundle?
     ): View = FragmentNextBinding.inflate(inflater, container, false).apply {
         next.setOnClickListener {
-            blink(Uris.NOT_EXISTS).exceptionOrNull()?.let {
+            blinking(Uris.NOT_EXISTS, onIntercepted = {
+                it ?: return@blinking
                 Log.e("BLINK", it.message, it)
                 toast(it.message)
-            }
+            })
         }
         home.setOnCheckedChangeListener { _, checked ->
             if (checked) {

@@ -6,7 +6,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.seewo.blink.annotation.BlinkUri
 import com.seewo.blink.attach
-import com.seewo.blink.blink
+import com.seewo.blink.blinking
 import com.seewo.blink.createBlinkIntent
 import com.seewo.blink.detach
 import com.seewo.blink.example.Uris
@@ -22,10 +22,11 @@ class NextActivity : AppCompatActivity() {
         val binding = ActivityNextBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.next.setOnClickListener {
-            blink(Uris.NOT_EXISTS).exceptionOrNull()?.let {
+            blinking(Uris.NOT_EXISTS, onIntercepted = {
+                it ?: return@blinking
                 Log.e("BLINK", it.message, it)
                 toast(it.message)
-            }
+            })
             Log.e("BLINK", "resolve ${packageManager.resolveActivity(Uris.NOT_EXISTS.createBlinkIntent(), PackageManager.MATCH_DEFAULT_ONLY)}")
         }
         binding.home.setOnCheckedChangeListener { _, checked ->

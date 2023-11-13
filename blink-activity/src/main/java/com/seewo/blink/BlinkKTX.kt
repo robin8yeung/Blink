@@ -155,7 +155,7 @@ fun Context.blinking(
 /**
  * 拦截器拦截路由，建议抛出以下异常
  */
-fun Interceptor.interrupt(msg: String? = null) {
+fun BaseInterceptor.interrupt(msg: String? = null) {
     throw InterruptedException(this, msg)
 }
 

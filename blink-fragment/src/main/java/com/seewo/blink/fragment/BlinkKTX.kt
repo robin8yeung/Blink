@@ -5,7 +5,7 @@ import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.seewo.blink.fragment.container.BlinkContainerFragment
-import com.seewo.blink.fragment.interceptor.Interceptor
+import com.seewo.blink.fragment.interceptor.BaseInterceptor
 import com.seewo.blink.fragment.interceptor.InterruptedException
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -21,6 +21,7 @@ import kotlinx.coroutines.runBlocking
  * - FragmentNotFoundException 无法找到uri对应的Fragment
  * - 自定义异常 路由被拦截
  */
+@Deprecated("use Fragment.blinking() instead")
 fun Fragment.blink(
     uri: String,
     onResult: ((Bundle?) -> Unit)? = null
@@ -36,6 +37,7 @@ fun Fragment.blink(
  * - FragmentNotFoundException 无法找到uri对应的Fragment
  * - 自定义异常 路由被拦截
  */
+@Deprecated("use fragmentBlinking() instead")
 fun fragmentBlink(
     uri: String,
     onResult: ((Bundle?) -> Unit)? = null
@@ -76,6 +78,40 @@ fun fragmentBlink(
 ): Result<Unit> = runCatching { runBlocking {
     Blink.navigation(uri, null, onResult)
 } }
+
+/**
+ * 导航到指定Fragment
+ *
+ * @param uri 字符串类型的Uri
+ * @param onIntercepted 路由被拦截回调。如果回调返回的Throwable为null则表示路由成功执行
+ * @param onResult 返回回调。
+ *
+ * @return 执行结果，可能存在以下两种异常
+ * - FragmentNotFoundException 无法找到uri对应的Fragment
+ * - 自定义异常 路由被拦截
+ */
+fun Fragment.blinking(
+    uri: String,
+    onIntercepted: ((Throwable?) -> Unit)? = null,
+    onResult: ((Bundle?) -> Unit)? = null
+) = blinking(uri.toUri(), onIntercepted, onResult)
+
+/**
+ * 导航到指定Fragment
+ *
+ * @param uri 字符串类型的Uri
+ * @param onIntercepted 路由被拦截回调。如果回调返回的Throwable为null则表示路由成功执行
+ * @param onResult 返回回调。
+ *
+ * @return 执行结果，可能存在以下两种异常
+ * - FragmentNotFoundException 无法找到uri对应的Fragment
+ * - 自定义异常 路由被拦截
+ */
+fun fragmentBlinking(
+    uri: String,
+    onIntercepted: ((Throwable?) -> Unit)? = null,
+    onResult: ((Bundle?) -> Unit)? = null
+) = fragmentBlinking(uri.toUri(), onIntercepted, onResult)
 
 /**
  * 异步执行，导航到指定Fragment
@@ -147,21 +183,21 @@ fun Fragment.popTo(uri: String): Boolean {
 /**
  * 添加拦截器
  */
-fun Interceptor.attach() {
+fun BaseInterceptor.attach() {
     Blink.add(this)
 }
 
 /**
  * 移除拦截器
  */
-fun Interceptor.detach() {
+fun BaseInterceptor.detach() {
     Blink.remove(this)
 }
 
 /**
  * 拦截器拦截路由建议抛出以下异常
  */
-fun Interceptor.interrupt(msg: String? = null) {
+fun BaseInterceptor.interrupt(msg: String? = null) {
     throw InterruptedException(this, msg)
 }
 

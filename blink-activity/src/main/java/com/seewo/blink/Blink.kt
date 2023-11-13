@@ -8,6 +8,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
+import android.util.Log
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultCallback
 import androidx.core.app.ActivityOptionsCompat
@@ -144,7 +145,7 @@ object Blink {
         uri: Uri,
         options: ActivityOptionsCompat? = null,
         onResult: ActivityResultCallback<ActivityResult>? = null
-    ) = navigationForResult(context, createIntent(uri)!!, options, onResult)
+    ) = navigationForResult(context, createIntent(uri), options, onResult)
 
     /**
      * 主要提供给java调用
@@ -177,7 +178,11 @@ object Blink {
         options: ActivityOptionsCompat? = null,
         onResult: ActivityResultCallback<ActivityResult>? = null
     ) {
-        runBlocking { doNavigation(context, intent, options, onResult) }
+        Log.println(Log.ASSERT, "robin", "A")
+        runBlocking {
+            Log.println(Log.ASSERT, "robin", "B")
+            doNavigation(context, intent, options, onResult)
+        }
     }
 
     suspend fun asyncNavigationForResult(
@@ -194,14 +199,13 @@ object Blink {
         intent: Intent,
         options: ActivityOptionsCompat?,
         onResult: ActivityResultCallback<ActivityResult>?
-    ) = withContext(Dispatchers.Main) {
+    ) {
         withContext(Dispatchers.IO) {
             interceptors.process(context, intent)
             intent.data?.let {
                 intent.component = RouteMap.get(it).component
             }
         }
-
         if (onResult == null) {
             context.startActivity(intent.apply {
                 if (context !is Activity) {

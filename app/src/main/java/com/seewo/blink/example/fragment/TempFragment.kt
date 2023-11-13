@@ -12,7 +12,7 @@ import com.seewo.blink.example.databinding.FragmentTempBinding
 import com.seewo.blink.fragment.R
 import com.seewo.blink.fragment.annotation.CustomAnimations
 import com.seewo.blink.fragment.annotation.Orientation
-import com.seewo.blink.fragment.blink
+import com.seewo.blink.fragment.blinking
 
 @BlinkUri(Uris.TEMP_FRAGMENT)
 @Orientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
@@ -26,7 +26,7 @@ class TempFragment: Fragment() {
         savedInstanceState: Bundle?
     ): View = FragmentTempBinding.inflate(inflater, container, false).apply {
         next.setOnClickListener {
-            blink(Uris.FINAL_FRAGMENT)
+            blinking(Uris.FINAL_FRAGMENT)
         }
     }.root
 }
