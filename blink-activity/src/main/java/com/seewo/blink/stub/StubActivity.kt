@@ -12,6 +12,7 @@ class StubActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         overridePendingTransition(0, 0)
         super.onCreate(savedInstanceState)
+        setStatusBarTransparent(true)
         val data = this.stubData
         if (data == null) {
             finish()
