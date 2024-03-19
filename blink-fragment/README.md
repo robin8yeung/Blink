@@ -289,8 +289,8 @@ class MyFragment : SingleTaskFragment() {
 
 ```kotlin
 // 这里仅用于举例，真实使用时，建议拦截器职责单一
-class LoggerInterceptor : Interceptor {
-    override fun process(from: Fragment?, target: Bundle) {
+class LoggerInterceptor : AsyncInterceptor {
+    override suspend fun process(from: Fragment?, target: Bundle) {
         val uri = target.uriOrNull
         // 打印路由信息
         Log.i("blink", "[from] $from [target] $uri")
@@ -316,55 +316,52 @@ loggerInterceptor.detach()
 
 ## 特别关注
 
-出于简化使用考虑，整个路由的过程，包括拦截器的处理过程，均是同步调用的，那么当你使用拦截器，需要关注以下一些点：
-
-- 对于专用拦截器，设置合理的过滤条件，仅对于需要拦截的跳转生效
-- 拦截器中避免做耗时操作
-- 拦截器中需要做异步拦截后跳转（如弹窗等待用户点击后再跳转），可以先拦截此次跳转并弹窗，在弹窗点击后再执行一次新的路由。
-    - 对于这种情况，要小心新的路由可能仍然被当前拦截器拦截，造成死循环，所以如有必要，对Intent增加必要参数，避免被二次拦截，Blink提供了绿色通道来解决这个问题。
+对于弹窗拦截等场景，如果遇到异步操作使用了回调的返回方式，可以借助suspendCancellableCoroutine函数，将回调转为协程的方式，以便在拦截器中进行处理。
 
 ```kotlin
-class PluginInterceptor : Interceptor {
-    private val caredPath = Uris.PLUGIN.toUri().path
+class PluginInterceptor : AsyncInterceptor {
+  private val caredPath = Uris.PLUGIN.toUri().path
 
-    // 仅对plugin的path生效
-    override fun filter(target: Bundle) =
-        target.uriOrNull?.path == caredPath
+  // 仅对plugin的path生效
+  override fun filter(target: Bundle) =
+    target.uriOrNull?.path == caredPath
 
-    // 设置拦截器优先级
-    override fun priority() = -2
+  // 设置拦截器优先级
+  override fun priority() = -2
 
-    override fun process(from: Fragment?, target: Bundle) {
-        val activity = from?.requireActivity()
-        when {
-            Build.VERSION.SDK_INT < 29 -> {
-                // 可以抛不同的异常，来在路由调用端针对不同的异常进行提示。此处举例不涉及
-                interrupt("系统版本过低")
-            }
-            !PluginConfig.isPluginEnable -> {
-                interrupt("用户无权限")
-            }
-            else -> {
-                activity?.let {
-                    // 弹窗并加载插件
-                    Dialog.loadPluginWithDialog(
-                        activity, ResourceTag.plugin
-                    ) { exception ->
-                        if (exception != null) {
-                            // 加载异常，不执行路由
-                            FLog.e(exception)
-                        } else {
-                            // 加载完成，执行路由。为避免再次被此拦截器拦截，添加绿色通道属性
-                            from?.blink(putInGreenChannel(target))
-                                ?: blinkFragment(putInGreenChannel(target))
-                        }
-                    }
+  override suspend fun process(from: Fragment?, target: Bundle) {
+    val activity = from?.requireActivity()
+    when {
+      Build.VERSION.SDK_INT < 29 -> {
+        // 可以抛不同的异常，来在路由调用端针对不同的异常进行提示。此处举例不涉及
+        interrupt("系统版本过低")
+      }
+      !PluginConfig.isPluginEnable -> {
+        interrupt("用户无权限")
+      }
+      else -> {
+        activity?.let {
+          runCatching {
+            // 回调转协程
+            suspendCancellableCoroutine { con ->
+              Dialog.loadPluginWithDialog(
+                activity, ResourceTag.plugin
+              ) {
+                if (it != null) {
+                  con.resumeWithException(it)
+                } else {
+                  con.resume(Unit)
                 }
-                // 需要弹窗确认，加载plugin，直接拦截同步路由跳转
-                interrupt("需要下载插件")
+              }
             }
+          }.onFailure {
+            FLog.e(it)
+            interrupt("插件未成功安装")
+          }
         }
+      }
     }
+  }
 }
 ```
 

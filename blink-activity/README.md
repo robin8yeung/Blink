@@ -104,6 +104,7 @@ kotlin中实现参数获取
 ```kotlin
 import android.app.Activity
 
+@BlinkUri(Uris.activity)
 class ExampleActivity : Activity() {
     // 业务自行处理Name参数传入
     private val name: String? by lazy { intent.data?.getQueryParameter("name") }
@@ -126,6 +127,7 @@ import android.app.Activity;
 import com.seewo.blink.BlinkParams;
 import com.seewo.blink.Blink;
 
+@BlinkUri(Uris.activity)
 public class ExampleActivity extends Activity {
     @BlinkParams(name = "name")
     private String name;
@@ -148,6 +150,7 @@ import androidx.fragment.app.Fragment;
 import com.seewo.blink.BlinkParams;
 import com.seewo.blink.Blink;
 
+// 对于Fragment
 public class ExampleFragment extends Fragment {
     @BlinkParams(name = "name")
     private String name;
@@ -157,6 +160,7 @@ public class ExampleFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // 执行参数注入
         Blink.inject(this);
         return new YourView(inflater, container, savedInstanceState);
     }
@@ -169,8 +173,8 @@ kotlin中使用
 
 ```kotlin
 // 这里仅用于举例，真实使用时，建议拦截器职责单一
-class LoggerInterceptor : Interceptor {
-    override fun process(context: Context, intent: Intent) {
+class LoggerInterceptor : AsyncInterceptor {
+    override suspend fun process(context: Context, intent: Intent) {
         // 打印路由信息
         FLog.a("from $context to $intent data: ${intent.dataString}")
         // 获取路由请求的参数，修改path并增加参数
@@ -216,17 +220,19 @@ class PrevActivity : Activity() {
         setContentView(R.layout.example)
         findViewById<View>(R.id.button).setOnClickListener {
             // 跳转至EXAMPLE_2
-            blink(Uris.EXAMPLE_2) {
+            blinking(Uris.EXAMPLE_2, onIntercepted = {
+              if (it != null) {
+                // 路由如果存在异常
+                Log.e("BLINK", it.message, it)
+                Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+              }
+            }) {
                 // ActivityResult回调
                 if (it.resultCode == Activity.RESULT_OK) {
                     Toast.makeText(this, "Return result: ${it.data}", Toast.LENGTH_LONG).show()
                 } else {
                     Toast.makeText(this, "Return result: Cancel", Toast.LENGTH_LONG).show()
                 }
-            }.onFailure {
-                // 路由如果存在异常
-                Log.e("BLINK", it.message, it)
-                Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -251,15 +257,10 @@ class NextActivity : Activity() {
 
 ## 特别关注
 
-出于简化使用考虑，整个路由的过程，包括拦截器的处理过程，均是同步调用的，那么当你使用拦截器，需要关注以下一些点：
-
-- 对于专用拦截器，设置合理的过滤条件，仅对于需要拦截的跳转生效
-- 拦截器中避免做耗时操作
-- 拦截器中需要做异步拦截后跳转（如弹窗等待用户点击后再跳转），可以先拦截此次跳转并弹窗，在弹窗点击后再执行一次新的路由。
-    - 对于这种情况，要小心新的路由可能仍然被当前拦截器拦截，造成死循环，所以如有必要，对Intent增加必要参数，避免被二次拦截，Blink提供了绿色通道来解决这个问题。
+对于弹窗拦截等场景，如果遇到异步操作使用了回调的返回方式，可以借助suspendCancellableCoroutine函数，将回调转为协程的方式，以便在拦截器中进行处理。
 
 ```kotlin
-class PluginInterceptor : Interceptor {
+class PluginInterceptor : AsyncInterceptor {
     private val caredPath = Uris.PLUGIN.toUri().path
 
     // 仅对plugin的path生效
@@ -269,7 +270,7 @@ class PluginInterceptor : Interceptor {
     // 设置拦截器优先级
     override fun priority() = -2
 
-    override fun process(context: Context, intent: Intent) {
+    override suspend fun process(context: Context, intent: Intent) {
         val activity = context as? Activity
         when {
             Build.VERSION.SDK_INT < 29 -> {
@@ -280,22 +281,25 @@ class PluginInterceptor : Interceptor {
                 interrupt("用户无权限")
             }
             else -> {
-                activity?.let {
-                    // 弹窗并加载插件
+              activity?.let {
+                runCatching {
+                  // 回调转协程
+                  suspendCancellableCoroutine { con ->
                     Dialog.loadPluginWithDialog(
-                        activity, ResourceTag.plugin
-                    ) { exception ->
-                        if (exception != null) {
-                            // 加载异常，不执行路由
-                            FLog.e(exception)
-                        } else {
-                            // 加载完成，执行路由。为避免再次被此拦截器拦截，添加绿色通道属性
-                            activity.blink(putInGreenChannel(intent))
-                        }
+                      activity, ResourceTag.plugin
+                    ) {
+                      if (it != null) {
+                        con.resumeWithException(it)
+                      } else {
+                        con.resume(Unit)
+                      }
                     }
+                  }
+                }.onFailure {
+                  FLog.e(it)
+                  interrupt("插件未成功安装")
                 }
-                // 需要弹窗确认，加载plugin，直接拦截同步路由跳转
-                interrupt("需要下载插件")
+              }
             }
         }
     }
